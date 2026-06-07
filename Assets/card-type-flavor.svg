@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="100%" height="100%">
+  <!-- Background -->
+  <rect width="36" height="36" fill="#080820" rx="8" stroke="#00ccff" stroke-width="1" opacity="0.3" />
+
+  <!-- Background sparkles -->
+  <polygon points="7,12 8,13 7,14 6,13" fill="#00ccff" opacity="0.5" />
+  <polygon points="29,22 30,23 29,24 28,23" fill="#00ccff" opacity="0.4" />
+
+  <!-- Cosmic Fluid inside the Glass (low opacity fill) -->
+  <polygon points="12,12 24,12 18,18" fill="#00ccff" fill-opacity="0.25" />
+  <line x1="11.5" y1="12" x2="24.5" y2="12" stroke="#00ccff" stroke-width="1" opacity="0.8" />
+
+  <!-- Toothpick / Skewer (inserted diagonally) -->
+  <line x1="12" y1="5" x2="22" y2="16" stroke="#00ccff" stroke-width="1.2" stroke-linecap="round" />
+
+  <!-- Planet Olive (with Saturn-like ring) -->
+  <g>
+    <!-- Planet body -->
+    <circle cx="17.5" cy="11" r="2.5" fill="#080820" stroke="#00ccff" stroke-width="1.2" />
+    
+    <!-- Planet Ring (Tilted) -->
+    <ellipse cx="17.5" cy="11" rx="5" ry="1.5" fill="none" stroke="#00ccff" stroke-width="1" transform="rotate(-20 17.5 11)" />
+  </g>
+
+  <!-- Martini Glass Structure -->
+  <!-- Bowl -->
+  <path d="M 8 7 L 18 18.5 L 28 7" fill="none" stroke="#00ccff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Stem -->
+  <line x1="18" y1="18.5" x2="18" y2="28" stroke="#00ccff" stroke-width="2" stroke-linecap="round" />
+  <!-- Base -->
+  <line x1="13" y1="28" x2="23" y2="28" stroke="#00ccff" stroke-width="2" stroke-linecap="round" />
+</svg>

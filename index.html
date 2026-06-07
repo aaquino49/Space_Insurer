@@ -1,0 +1,4281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Insurer — Mutual of Andromeda</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --void:         #03030f;
+  --panel:        #080820;
+  --panel-alt:    #0b0b28;
+  --panel-bright: #10103a;
+  --border:       #1a1a55;
+  --border-glow:  #2828aa;
+  --text:         #b8cce8;
+  --text-dim:     #445566;
+  --text-label:   #6688aa;
+  --green:        #00e87a;
+  --green-dim:    #006640;
+  --amber:        #ffaa00;
+  --amber-dim:    #664400;
+  --red:          #ff4466;
+  --red-dim:      #660022;
+  --purple:       #bb66ff;
+  --cyan:         #00ccff;
+  --gold:         #ffcc44;
+  --font:         'Courier New', Courier, monospace;
+  --radius:       4px;
+  --hud-h:        68px;
+  --foot-h:       52px;
+  --sidebar-w:    270px;
+  --gap:          10px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  display: grid;
+  grid-template-rows: var(--hud-h) 1fr var(--foot-h);
+  grid-template-areas: "hud" "main" "foot";
+}
+
+/* ============================================================
+   HUD / HEADER
+   ============================================================ */
+#hud {
+  grid-area: hud;
+  background: var(--panel);
+  border-bottom: 2px solid var(--border-glow);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 12px;
+  box-shadow: 0 2px 24px rgba(40,40,170,0.35);
+  position: relative;
+  z-index: 10;
+}
+
+.hud-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(0,204,255,0.25));
+}
+
+.hud-sep {
+  width: 1px;
+  height: 38px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.hud-period {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 76px;
+}
+.hud-period-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.hud-period-val   { font-size: 16px; color: var(--amber); font-weight: bold; }
+
+.hud-progress {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 60px;
+}
+.hud-prog-label { font-size: 9px; color: var(--text-dim); letter-spacing: 1px; }
+.hud-prog-track {
+  width: 54px;
+  height: 6px;
+  background: var(--panel-bright);
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.hud-prog-fill {
+  height: 100%;
+  background: var(--amber);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.hud-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Stat chip (numeric) */
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 68px;
+  flex-shrink: 0;
+}
+.stat-chip-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-chip-val   { font-size: 15px; font-weight: bold; }
+
+/* Bar stat (reputation, heat) */
+.bar-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  min-width: 76px;
+}
+.bar-stat-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.bar-stat-num   { font-size: 10px; }
+.bar-track {
+  width: 68px;
+  height: 7px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+.bar-rep-track  { background: #001a22; border: 1px solid #003344; }
+.bar-heat-track { background: #1a0005; border: 1px solid #330011; }
+
+/* Solvency badge */
+.solvency-badge {
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-weight: bold;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  flex-shrink: 0;
+}
+.sol-green  { background:#002a1a; color:var(--green);  border:1px solid var(--green-dim); }
+.sol-amber  { background:#2a1a00; color:var(--amber);  border:1px solid var(--amber-dim); }
+.sol-orange { background:#2a0d00; color:#ff8800;       border:1px solid #663300; }
+.sol-red    { background:#2a0011; color:var(--red);    border:1px solid var(--red-dim); }
+
+.hud-btn-row { display:flex; gap:6px; flex-shrink:0; }
+
+/* ============================================================
+   MAIN LAYOUT
+   ============================================================ */
+#main {
+  grid-area: main;
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  overflow: hidden;
+}
+
+/* ============================================================
+   PORTFOLIO SIDEBAR
+   ============================================================ */
+#portfolio-panel {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 0;
+}
+
+.sidebar-section { padding: 10px 12px; }
+
+.section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-label);
+  padding-bottom: 7px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.stat-box {
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+}
+.stat-box-label { font-size: 9px; color: var(--text-dim); display:block; text-transform:uppercase; letter-spacing:0.5px; }
+.stat-box-val   { font-size: 14px; font-weight: bold; }
+
+.policy-card {
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid;
+  border-radius: var(--radius);
+  padding: 7px 9px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  transition: border-color 0.2s;
+}
+.policy-card-line  { font-size: 10px; margin-bottom: 2px; }
+.policy-card-name  { color: var(--text); margin-bottom: 2px; }
+.policy-card-stats { display:flex; justify-content:space-between; color:var(--text-dim); font-size:10px; }
+
+.empty-state {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 20px 10px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* Log */
+.log-entry {
+  padding: 3px 0;
+  font-size: 11px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.log-entry:last-child { border-bottom: none; }
+.log-income  { color: var(--green); }
+.log-expense { color: var(--red); }
+.log-warn    { color: var(--amber); }
+.log-info    { color: var(--text-label); }
+.log-system  { color: var(--cyan); }
+
+/* ============================================================
+   PHASE PANEL
+   ============================================================ */
+#phase-panel {
+  background: var(--panel-alt);
+  overflow-y: auto;
+  padding: 14px 18px;
+}
+
+.phase-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.phase-title {
+  font-size: 20px;
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0,204,255,0.3);
+}
+.phase-subtitle {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.phase-body { max-width: 680px; }
+
+.info-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  line-height: 1.8;
+}
+.info-box p { margin-bottom: 6px; }
+.info-box p:last-child { margin-bottom: 0; }
+.info-box .note {
+  font-size: 11px;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  margin-top: 10px;
+  padding-top: 8px;
+}
+
+/* Resolution ledger */
+.ledger {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.ledger-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.ledger-row:last-child { border-bottom: none; }
+.ledger-row.total {
+  font-weight: bold;
+  font-size: 15px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-glow);
+  border-bottom: none;
+}
+.ledger-label { color: var(--text-label); }
+
+/* Report panel */
+.report-stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.report-stat {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
+}
+.report-stat-label { font-size: 10px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+.report-stat-val   { font-size: 20px; font-weight: bold; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.12s;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  user-select: none;
+}
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: #0a2a6a;
+  color: var(--cyan);
+  border-color: #1a4aaa;
+  box-shadow: 0 0 10px rgba(0,150,255,0.15);
+}
+.btn-primary:hover {
+  background: #0d3280;
+  border-color: var(--cyan);
+  box-shadow: 0 0 18px rgba(0,204,255,0.3);
+}
+
+.btn-success {
+  background: #003322;
+  color: var(--green);
+  border-color: var(--green-dim);
+}
+.btn-success:hover { background: #004433; border-color: var(--green); }
+
+.btn-danger {
+  background: #330011;
+  color: var(--red);
+  border-color: var(--red-dim);
+}
+.btn-danger:hover { background: #440022; border-color: var(--red); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border);
+  font-size: 11px;
+  padding: 6px 12px;
+}
+.btn-ghost:hover { border-color: var(--text-label); color: var(--text); }
+
+.btn-sm { padding: 6px 12px; font-size: 11px; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+#footer-bar {
+  grid-area: foot;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 14px;
+}
+
+.phase-pip-row { display:flex; gap:5px; align-items:center; }
+.phase-pip {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.2s;
+}
+.phase-pip.pip-done   { background: var(--green-dim); }
+.phase-pip.pip-active { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+
+.footer-label {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-actions { display:flex; gap:8px; }
+
+/* ============================================================
+   MODAL / OVERLAY
+   ============================================================ */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3,3,15,0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(2px);
+}
+#modal-overlay.hidden { display: none; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 6px;
+  padding: 36px 40px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 0 60px rgba(40,40,200,0.4);
+  text-align: center;
+}
+.modal-icon  { font-size: 52px; margin-bottom: 14px; }
+.modal-title { margin-bottom: 12px; }
+.modal-body  { color: var(--text-dim); line-height: 1.7; margin-bottom: 28px; font-size: 13px; }
+.modal-stat-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.modal-stat-item { text-align: center; }
+.modal-stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.modal-stat-val   { font-size: 18px; font-weight: bold; }
+.modal-actions { display:flex; gap:12px; justify-content:center; }
+
+/* ============================================================
+   OFFER CARDS (client signing UI)
+   ============================================================ */
+.offer-list { display:flex; flex-direction:column; gap:12px; }
+
+.offer-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.offer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+.offer-line-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.offer-risk-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.offer-name {
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+.offer-quip {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.offer-stats {
+  display: flex;
+  gap: 20px;
+  font-size: 11px;
+  color: var(--text-label);
+  margin-bottom: 12px;
+}
+.offer-stat strong { color: var(--text); }
+
+.offer-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.offer-slider-label { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+.offer-slider {
+  flex: 1;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-glow);
+  outline: none;
+  cursor: pointer;
+}
+.offer-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--cyan);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0,204,255,0.5);
+}
+.offer-premium-display {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--green);
+  min-width: 70px;
+  text-align: right;
+}
+
+.offer-actions { display:flex; gap:8px; }
+
+/* ============================================================
+   EVENT CARDS
+   ============================================================ */
+.event-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  max-width: 640px;
+}
+.event-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.event-type-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.event-line-tag {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.event-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.event-flavor {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: var(--panel-alt);
+  border-left: 2px solid var(--border-glow);
+  border-radius: 2px;
+  font-style: italic;
+}
+.event-choices { display:flex; flex-direction:column; gap:7px; }
+.event-choice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s;
+  gap: 12px;
+}
+.event-choice-btn:hover {
+  border-color: var(--cyan);
+  background: var(--panel-bright);
+}
+.event-choice-btn:active { transform: translateX(2px); }
+.choice-preview {
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Card result reveal */
+.resolved-summary {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  max-width: 640px;
+}
+.resolved-summary-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--text-label);
+  margin-bottom: 4px;
+}
+.resolved-summary-result { color: var(--text-dim); font-style: italic; }
+
+.cards-pending-indicator {
+  font-size: 11px;
+  color: var(--amber);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ============================================================
+   STAFF CARDS (M4)
+   ============================================================ */
+.staff-list { display:flex; flex-direction:column; gap:8px; max-width:640px; margin-bottom:20px; }
+.staff-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+}
+.staff-card.hired {
+  border-color: var(--green-dim);
+  background: #001a0a;
+}
+
+/* Terms pips on policy cards */
+.terms-pips { display:flex; gap:3px; margin-top:4px; }
+.term-pip { width:6px; height:6px; border-radius:1px; background:var(--green-dim); }
+.term-pip.active { background:var(--green); }
+
+/* ============================================================
+   META-PROGRESSION UNLOCK LIST (M7)
+   ============================================================ */
+.unlock-list { display:flex; flex-direction:column; gap:7px; }
+.unlock-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12px;
+}
+.unlock-item.owned {
+  border-color: var(--green-dim);
+  background: #001a0a;
+}
+
+/* IC badge in HUD */
+.ic-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeSlideIn {
+  from { opacity:0; transform: translateY(10px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.fade-in { animation: fadeSlideIn 0.22s ease forwards; }
+
+@keyframes pulse {
+  0%,100% { opacity:1; }
+  50%      { opacity:0.55; }
+}
+.blink { animation: pulse 1.6s infinite; }
+
+/* Retro scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,20,0.07) 2px,
+    rgba(0,0,20,0.07) 4px
+  );
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar       { width: 5px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+
+/* ============================================================
+   M10 — TUTORIAL / SETTINGS / ONBOARDING
+   ============================================================ */
+#settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3,3,15,0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  backdrop-filter: blur(2px);
+}
+#settings-overlay.hidden { display: none; }
+
+.settings-modal {
+  background: var(--panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 6px;
+  padding: 28px 32px;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 0 40px rgba(40,40,200,0.35);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 13px; color: var(--text); }
+.settings-desc  { font-size: 10px; color: var(--text-dim); margin-top:2px; }
+.settings-control { flex-shrink:0; display:flex; gap:6px; }
+
+/* Toggle switch */
+.toggle {
+  width: 36px; height: 18px;
+  background: var(--border);
+  border-radius: 9px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.toggle.on { background: var(--green-dim); border-color: var(--green); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: left 0.2s, background 0.2s;
+}
+.toggle.on::after { left: 20px; background: var(--green); }
+
+/* Tooltip / tutorial bubble */
+.tooltip-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  pointer-events: none;
+}
+.tutorial-step {
+  position: absolute;
+  background: var(--panel);
+  border: 1px solid var(--cyan);
+  border-radius: 6px;
+  padding: 14px 16px;
+  max-width: 280px;
+  box-shadow: 0 0 20px rgba(0,204,255,0.25);
+  pointer-events: all;
+  animation: fadeSlideIn 0.2s ease;
+}
+.tutorial-step::before {
+  content: '';
+  position: absolute;
+  width: 8px; height: 8px;
+  background: var(--cyan);
+  border-radius: 50%;
+}
+.tutorial-title { font-size:12px; font-weight:bold; color:var(--cyan); margin-bottom:6px; }
+.tutorial-body  { font-size:11px; color:var(--text-dim); line-height:1.6; margin-bottom:10px; }
+.tutorial-nav   { display:flex; justify-content:space-between; align-items:center; }
+.tutorial-progress { font-size:10px; color:var(--text-dim); }
+
+/* ============================================================
+   M9 — DEBUG PANEL
+   ============================================================ */
+#debug-panel {
+  position: fixed;
+  bottom: 60px;
+  right: 12px;
+  background: #010110;
+  border: 1px solid var(--border-glow);
+  border-radius: 6px;
+  padding: 12px 14px;
+  width: 230px;
+  z-index: 500;
+  font-size: 11px;
+  box-shadow: 0 0 20px rgba(40,40,200,0.4);
+}
+#debug-panel.hidden { display: none; }
+.dbg-title {
+  font-size: 10px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+.dbg-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.dbg-row:last-child { border-bottom: none; }
+.dbg-row strong { color: var(--text); }
+.dbg-btns { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
+.dbg-btn {
+  padding: 3px 7px;
+  background: var(--panel-bright);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-family: var(--font);
+  font-size: 10px;
+  cursor: pointer;
+}
+.dbg-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* Difficulty indicator chip */
+.diff-chip {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: 6px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   M8 — JUICE & POLISH
+   ============================================================ */
+/* Stat change flash */
+@keyframes statFlashGreen { 0%{background:rgba(0,232,122,0.25)} 100%{background:transparent} }
+@keyframes statFlashRed   { 0%{background:rgba(255,68,102,0.25)} 100%{background:transparent} }
+.flash-green { animation: statFlashGreen 0.6s ease forwards; }
+.flash-red   { animation: statFlashRed   0.6s ease forwards; }
+
+/* Card slide-in */
+@keyframes cardSlideIn {
+  from { opacity:0; transform: translateX(20px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+.event-card { animation: cardSlideIn 0.25s ease forwards; }
+
+/* Choice button glow on hover */
+.event-choice-btn:hover {
+  box-shadow: 0 0 12px rgba(0,204,255,0.2);
+}
+
+/* Solvency danger pulse when rating is D or CCC */
+.sol-red { animation: pulse 1.5s infinite; }
+
+/* Capital warning pulse */
+@keyframes capitalWarning {
+  0%,100% { text-shadow: none; }
+  50% { text-shadow: 0 0 8px rgba(255,68,102,0.8); }
+}
+.capital-warning { animation: capitalWarning 1s infinite; }
+
+/* Phase transition */
+.phase-body { animation: fadeSlideIn 0.2s ease forwards; }
+
+/* Keyboard hint tooltip */
+.kbd-hint {
+  display: inline-block;
+  background: var(--panel-bright);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   ACHIEVEMENT TOASTS (M12)
+   ============================================================ */
+#toast-container {
+  position: fixed;
+  bottom: 68px;
+  right: 14px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  pointer-events: none;
+}
+.achievement-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 9px 14px;
+  box-shadow: 0 0 18px rgba(255,204,68,0.25);
+  opacity: 0;
+  transform: translateX(30px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  min-width: 220px;
+}
+.achievement-toast.toast-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.toast-icon { font-size: 20px; flex-shrink: 0; }
+.toast-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 2px; }
+.toast-name  { font-size: 12px; font-weight: bold; color: var(--text); }
+
+/* DAILY badge chip */
+.daily-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,204,255,0.12);
+  border: 1px solid rgba(0,204,255,0.4);
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-size: 9px;
+  color: var(--cyan);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<header id="hud"></header>
+<main id="main">
+  <aside id="portfolio-panel"></aside>
+  <section id="phase-panel"></section>
+</main>
+<footer id="footer-bar"></footer>
+<div id="modal-overlay" class="hidden"></div>
+<div id="debug-panel" class="hidden"></div>
+<div id="settings-overlay" class="hidden"></div>
+<div id="toast-container"></div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const GAME_VERSION = '0.5.0';
+const SAVE_KEY     = 'space_insurer_v1';
+const START_YEAR   = 2387;
+
+/* ============================================================
+   BALANCE CONSTANTS — all tunable numbers in one place (M9)
+   ============================================================ */
+const BALANCE = {
+  maxTurns:         20,      // quarters per run
+  startCapital:     10000,   // starting GalactiCredits
+  startReputation:  50,      // starting reputation (0–100)
+  winCapital:       15000,   // capital needed for a full IPO victory
+
+  // Difficulty scaling (multiplier applied to claimChance each turn)
+  diffByTurn: [
+    0,                       // index 0 unused
+    0.75, 0.75, 0.80, 0.85, 0.85,   // T1-5: easy ramp
+    1.00, 1.00, 1.05, 1.10, 1.10,   // T6-10: baseline
+    1.20, 1.25, 1.30, 1.35, 1.40,   // T11-15: escalating
+    1.50, 1.55, 1.60, 1.70, 1.80,   // T16-20: brutal final push
+  ],
+
+  // Catastrophe
+  catExposureScale: 150000,  // exposure at which catChance = 15%
+  catMaxChance:     0.28,    // hard cap on cat probability
+  catPayoutFrac:    0.22,    // cat cost = exposure × this × rng
+  reinsuranceMult:  0.04,    // reinsurance cost = exposure × this
+  reinsuranceCap:   5000,    // cat loss cap when reinsured
+
+  // Reputation consequences
+  repLowThreshold:  30,      // below this: fewer/worse offers
+  repCritThreshold: 15,      // below this: +5 heat per turn auto-accumulates
+
+  // Heat consequences
+  heatAuditThreshold:  60,   // heat ≥ this enables audit card draw
+  heatPolicyCancelThreshold: 85,  // heat ≥ this: 1 policy may cancel per turn
+
+  // Loss ratio target for a balanced run (informational)
+  targetLossRatio: 0.65,
+};
+
+const MAX_TURNS = BALANCE.maxTurns;
+
+const PHASES = ['portfolio', 'events', 'resolution', 'report'];
+
+const PHASE_META = {
+  portfolio:  { icon:'📋', label:'Portfolio Review',   sub:'Manage your book of business',       step:0 },
+  events:     { icon:'⚡', label:'Events & Claims',    sub:'Incoming claims & galactic chaos',   step:1 },
+  resolution: { icon:'⚖️', label:'Resolution',         sub:'Premiums in, claims out',            step:2 },
+  report:     { icon:'📊', label:'Quarterly Report',   sub:'Review your performance',            step:3 },
+};
+
+const PHASE_ADVANCE = {
+  portfolio:  { label:'Proceed to Events →',   cls:'btn-primary' },
+  events:     { label:'Resolve Events →',       cls:'btn-primary' },
+  resolution: { label:'Generate Report →',      cls:'btn-success' },
+  report:     { label:'Begin Next Quarter →',   cls:'btn-success' },
+};
+
+const LINE_META = {
+  colonization: { icon:'🪐', label:'Colonization',       color:'var(--amber)',  svgFile:'icon-colonization' },
+  orbital:      { icon:'🛸', label:'Orbital & Stations',  color:'var(--cyan)',   svgFile:'icon-orbital'      },
+  shipping:     { icon:'🚀', label:'Shipping & Freight',  color:'var(--green)',  svgFile:'icon-shipping'     },
+  specialty:    { icon:'👾', label:'Specialty & Weird',   color:'var(--purple)', svgFile:'icon-specialty'    },
+};
+
+/* ============================================================
+   CLIENT ARCHETYPES — the pool of potential policyholders
+   ============================================================ */
+const CLIENT_ARCHETYPES = [
+  // ── COLONIZATION ──────────────────────────────────────────
+  { id:'nova-prime',      line:'colonization', name:'Nova Prime Colony',
+    basePremium:300, maxPayout:8000,  claimChance:0.12, claimRange:[500,2500],   terms:4, riskLevel:'LOW',
+    desc:'A scrappy new colony on a Class-M world. Reasonable safety record.',
+    quip:'"They named a crater after their CEO. Hubris."' },
+  { id:'arrancross',      line:'colonization', name:'Arrancross Settlement',
+    basePremium:500, maxPayout:15000, claimChance:0.25, claimRange:[2000,8000],  terms:3, riskLevel:'MEDIUM',
+    desc:'Desert world, deep drilling ops. Sandworm territory confirmed.',
+    quip:'"Policy excludes acts of giant sandworm. They didn\'t ask."' },
+  { id:'vega-7',          line:'colonization', name:'Vega-7 Terraforming Op',
+    basePremium:750, maxPayout:22000, claimChance:0.38, claimRange:[5000,15000], terms:2, riskLevel:'HIGH',
+    desc:'Experimental atmospheric conversion. Oxygen levels: fluctuating.',
+    quip:'"The air is \'mostly\' breathable. Mostly."' },
+
+  // ── ORBITAL & STATIONS ────────────────────────────────────
+  { id:'station-aurora',  line:'orbital', name:'Station Aurora',
+    basePremium:400, maxPayout:12000, claimChance:0.10, claimRange:[800,3500],   terms:4, riskLevel:'LOW',
+    desc:'Commercial habitation ring. Excellent maintenance record.',
+    quip:'"The onboard AI is friendly. Definitely not planning anything."' },
+  { id:'vertex-platform', line:'orbital', name:'Vertex Deep Platform',
+    basePremium:600, maxPayout:18000, claimChance:0.22, claimRange:[3000,10000], terms:3, riskLevel:'MEDIUM',
+    desc:'Research station in an unstable gravitational rift zone.',
+    quip:'"Three near-misses last year. They call them learning opportunities."' },
+  { id:'galactica-ring',  line:'orbital', name:'Galactica Habitat Ring',
+    basePremium:950, maxPayout:32000, claimChance:0.32, claimRange:[8000,20000], terms:2, riskLevel:'HIGH',
+    desc:'4,000-resident mega-ring. Highly complex interlocked systems.',
+    quip:'"The service robots formed a book club. This is concerning."' },
+
+  // ── SHIPPING & FREIGHT ────────────────────────────────────
+  { id:'sulaco-express',  line:'shipping', name:'Sulaco Express Co.',
+    basePremium:350, maxPayout:9000,  claimChance:0.15, claimRange:[1000,4000],  terms:4, riskLevel:'LOW',
+    desc:'Standard cargo on established inner-system routes.',
+    quip:'"They lost a shipment once. The shipment walked back."' },
+  { id:'rim-runners',     line:'shipping', name:'Rim Runners Freight',
+    basePremium:550, maxPayout:16000, claimChance:0.28, claimRange:[2500,9000],  terms:3, riskLevel:'MEDIUM',
+    desc:'Outer-rim hauls. Raiders, wormholes, and suspicious manifests.',
+    quip:'"Captain insists the cargo is \'probably just eggs.\'"' },
+  { id:'hyperion-transit',line:'shipping', name:'Hyperion FTL Transit',
+    basePremium:850, maxPayout:26000, claimChance:0.40, claimRange:[6000,18000], terms:2, riskLevel:'HIGH',
+    desc:'Experimental FTL freight. Ships occasionally misplace themselves in time.',
+    quip:'"Three ships filed claims from the future. Two from the past."' },
+
+  // ── SPECIALTY & WEIRD ─────────────────────────────────────
+  { id:'nostromo-bio',    line:'specialty', name:'Nostromo BioTech Ltd',
+    basePremium:480, maxPayout:14000, claimChance:0.20, claimRange:[2000,7000],  terms:3, riskLevel:'MEDIUM',
+    desc:'Pharma research. Exotic biology. "Contained" lab specimens.',
+    quip:'"Their liability waiver is 900 pages. We read some of them."' },
+  { id:'weyland-cryo',    line:'specialty', name:'Weyland CryoTours Inc.',
+    basePremium:700, maxPayout:21000, claimChance:0.34, claimRange:[4000,13000], terms:2, riskLevel:'HIGH',
+    desc:'Cryo-tourism packages to exotic/dangerous locales. Very creative waivers.',
+    quip:'"Mortality rate: statistically within acceptable parameters."' },
+  { id:'district-omega',  line:'specialty', name:'District Omega Refuge',
+    basePremium:560, maxPayout:19000, claimChance:0.26, claimRange:[3000,12000], terms:3, riskLevel:'MEDIUM',
+    desc:'Alien refugee housing complex. Complex claims, surprisingly good tenants.',
+    quip:'"The cat food economy is surprisingly liquid."' },
+];
+
+const RISK_COLORS = { LOW:'var(--green)', MEDIUM:'var(--amber)', HIGH:'var(--red)' };
+
+/* ============================================================
+   CARD TYPE META
+   ============================================================ */
+/* ============================================================
+   M7 — META-PROGRESSION (Industry Cred & Unlocks)
+   ============================================================ */
+const META_KEY = 'space_insurer_meta_v1';
+
+const UNLOCKS = [
+  { id:'slush-fund',    icon:'💰', name:'Slush Fund',
+    desc:'Start each run with +¢3,000 extra capital.',
+    cost: 5,  startBonus: { capital: 3000 } },
+  { id:'good-rep',      icon:'⭐', name:'Good Reputation',
+    desc:'Start each run with +15 Reputation.',
+    cost: 3,  startBonus: { reputation: 15 } },
+  { id:'connected',     icon:'🤝', name:'Well Connected',
+    desc:'Receive 1 extra client offer per portfolio phase.',
+    cost: 7,  startBonus: { extraOffer: true } },
+  { id:'reins-head',    icon:'☂', name:'Reinsurance Clause',
+    desc:'First quarter\'s reinsurance is free.',
+    cost: 4,  startBonus: { freeReins: true } },
+  { id:'actuarial-intern', icon:'🧮', name:'Actuarial Intern',
+    desc:'Claim probability details shown on client offers from turn 1 (no hire needed).',
+    cost: 3,  startBonus: { freeActuarial: true } },
+];
+
+/* ============================================================
+   ACHIEVEMENTS (M12)
+   ============================================================ */
+const ACHIEVEMENTS = [
+  { id:'first-steps',      icon:'🐣', name:'First Steps',
+    desc:'Complete your first quarter.',
+    condition: g => g.turn >= 2 },
+  { id:'halfway',          icon:'🏃', name:"Actuary's Hope",
+    desc:'Survive to turn 10.',
+    condition: g => g.turn >= 10 },
+  { id:'ipo',              icon:'🚀', name:'IPO Champion',
+    desc:'Execute a full IPO with ¢15,000+ in reserve.',
+    condition: g => g.isGameOver && g.isVictory && g.gameOverReason === 'ipo' },
+  { id:'fire-hazard',      icon:'🔥', name:'Fire Hazard',
+    desc:'Reach 99 Regulatory Heat.',
+    condition: g => g.heat >= 99 },
+  { id:'teflon',           icon:'🏆', name:'Teflon CEO',
+    desc:'Win a run with Reputation ≥ 80.',
+    condition: g => g.isGameOver && g.isVictory && g.reputation >= 80 },
+  { id:'diversified',      icon:'📊', name:'Diversified Portfolio',
+    desc:'Hold all four insurance lines simultaneously.',
+    condition: g => {
+      const lines = new Set(g.policies.map(p => p.line));
+      return lines.has('colonization') && lines.has('orbital') && lines.has('shipping') && lines.has('specialty');
+    } },
+  { id:'rock-bottom',      icon:'💸', name:'Rock Bottom',
+    desc:'Go bankrupt with ¢100 or less left.',
+    condition: g => g.isGameOver && !g.isVictory && g.gameOverReason === 'bankrupt' && g.capital <= 100 },
+  { id:'cat-noReins',      icon:'☄', name:'Uninsured & Alive',
+    desc:'Survive a catastrophe without reinsurance.',
+    condition: g => g.catSurvivedNoReins === true },
+  { id:'specialist',       icon:'🔮', name:'Hive Whisperer',
+    desc:'Resolve 3 specialty events in a single run.',
+    condition: g => (g.specialtyResolved || 0) >= 3 },
+  { id:'daily-done',       icon:'📅', name:'Daily Grind',
+    desc:'Complete a Daily Challenge run.',
+    condition: g => g.isGameOver && g.isDaily },
+  { id:'veteran',          icon:'🎖', name:'Veteran CEO',
+    desc:'Complete 10 runs (win or lose).',
+    condition: (g, m) => (m.totalRuns || 0) >= 10 },
+  { id:'industry-legend',  icon:'⭐', name:'Industry Legend',
+    desc:'Accumulate 50 Industry Cred across all runs.',
+    condition: (g, m) => (m.industrycred || 0) >= 50 },
+];
+
+/* ============================================================
+   DAILY CHALLENGE HELPERS (M11)
+   ============================================================ */
+function getDailyDateStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const dy = String(d.getDate()).padStart(2, '0');
+  return `${y}-${mo}-${dy}`;
+}
+
+function getDailySeed() {
+  const str = getDailyDateStr();
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return h || 1;
+}
+
+function initialMeta() {
+  return {
+    industrycred:  0,
+    unlocks:       [],
+    totalRuns:     0,
+    bestCapital:   0,
+    bestTurns:     0,
+    achievements:  [],     // M12: array of unlocked achievement IDs
+    runHistory:    [],     // M12: last 10 run summaries
+    dailyBest:     {},     // M11: keyed by 'YYYY-MM-DD' → best capital
+  };
+}
+
+let meta = initialMeta();
+
+function saveMeta() {
+  try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch(e) {}
+}
+
+function loadMeta() {
+  try {
+    const raw = localStorage.getItem(META_KEY);
+    if (raw) meta = { ...initialMeta(), ...JSON.parse(raw) };
+  } catch(e) {}
+}
+
+/* ============================================================
+   ACHIEVEMENT ENGINE (M12)
+   ============================================================ */
+function checkAchievements() {
+  const newlyUnlocked = [];
+  for (const a of ACHIEVEMENTS) {
+    if (meta.achievements.includes(a.id)) continue;
+    try {
+      if (a.condition(game, meta)) {
+        meta.achievements.push(a.id);
+        newlyUnlocked.push(a);
+      }
+    } catch (_) { /* guard against mid-game partial state */ }
+  }
+  if (newlyUnlocked.length > 0) {
+    saveMeta();
+    newlyUnlocked.forEach(a => showAchievementToast(a));
+  }
+}
+
+function showAchievementToast(achievement) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const id = 'toast-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  const el = document.createElement('div');
+  el.className = 'achievement-toast';
+  el.id = id;
+  el.innerHTML = `
+    <span class="toast-icon">${achievement.icon}</span>
+    <div class="toast-body">
+      <div class="toast-title">Achievement Unlocked</div>
+      <div class="toast-name">${achievement.name}</div>
+    </div>`;
+  container.appendChild(el);
+  // Fade in
+  requestAnimationFrame(() => el.classList.add('toast-visible'));
+  // Auto-dismiss after 3.5s
+  setTimeout(() => {
+    el.classList.remove('toast-visible');
+    setTimeout(() => el.remove(), 400);
+  }, 3500);
+}
+
+/* ============================================================
+   RUN HISTORY (M12)
+   ============================================================ */
+function saveRunHistory() {
+  const entry = {
+    date:       getDailyDateStr(),
+    seedHex:    (game.seed >>> 0).toString(16).toUpperCase().padStart(8, '0'),
+    turns:      game.turn,
+    capital:    game.capital,
+    reputation: game.reputation,
+    outcome:    game.isVictory
+                  ? (game.gameOverReason === 'ipo' ? 'IPO Victory' : 'Narrow Exit')
+                  : (game.gameOverReason === 'bankrupt' ? 'Bankrupt' : 'License Revoked'),
+    isDaily:    game.isDaily || false,
+  };
+  meta.runHistory = [entry, ...(meta.runHistory || [])].slice(0, 10);
+  saveMeta();
+}
+
+function earnIC() {
+  const turns   = game.turn;
+  const capital = game.capital;
+  const base    = turns;
+  const winBonus = game.isVictory ? 10 : 0;
+  const capBonus = Math.floor(capital / 5000);
+  return Math.max(1, base + winBonus + capBonus);
+}
+
+function applyStartBonuses() {
+  for (const unlockId of meta.unlocks) {
+    const u = UNLOCKS.find(u => u.id === unlockId);
+    if (!u) continue;
+    const b = u.startBonus;
+    if (b.capital)       game.capital    += b.capital;
+    if (b.reputation)    game.reputation += b.reputation;
+    if (b.freeReins)     game.reinsurancePurchased = true;
+    if (b.freeActuarial) game.flags.freeActuarial  = true;
+  }
+}
+
+function hasUnlock(id) {
+  return meta.unlocks.includes(id);
+}
+
+/* ============================================================
+   STAFF / DEPARTMENT ARCHETYPES (M4)
+   ============================================================ */
+const STAFF_DEPTS = [
+  { id:'underwriting', icon:'📊', name:'Underwriting Dept',
+    desc:'Pulls better clients. +1 offer per portfolio phase.',
+    cost:2000, upkeep:200,
+    effect:'Adds one extra client offer each quarter.' },
+  { id:'claims',       icon:'🔍', name:'Claims Department',
+    desc:'Experienced adjusters. Reduces all claim payouts by 20%.',
+    cost:1500, upkeep:150,
+    effect:'Claim amounts reduced 20% before deduction.' },
+  { id:'legal',        icon:'⚖️', name:'Legal Department',
+    desc:'Expert litigators. Denying claims costs 50% less Heat.',
+    cost:2500, upkeep:300,
+    effect:'Heat from denied claims halved.' },
+  { id:'pr',           icon:'📣', name:'PR Department',
+    desc:'Spin doctors on retainer. Recover +5 reputation per quarter.',
+    cost:1000, upkeep:100,
+    effect:'+5 reputation each resolution phase.' },
+  { id:'actuarial',    icon:'🧮', name:'Actuarial Division',
+    desc:'Risk nerds with spreadsheets. Reveals exact claim probability on offer cards.',
+    cost:1800, upkeep:200,
+    effect:'Shows precise claim chance and expected cost on all client offers.' },
+];
+
+/* ============================================================
+   CARD TYPE META
+   ============================================================ */
+const CARD_TYPE_META = {
+  claim:       { label:'CLAIM',       color:'var(--red)',    bg:'#330011' },
+  opportunity: { label:'OPPORTUNITY', color:'var(--green)',  bg:'#002211' },
+  crisis:      { label:'CRISIS',      color:'var(--amber)',  bg:'#221100' },
+  regulatory:  { label:'REGULATORY',  color:'var(--purple)', bg:'#1a0033' },
+  boss:        { label:'⚠ BOSS',      color:'var(--gold)',   bg:'#221100' },
+  flavor:      { label:'DISPATCH',    color:'var(--cyan)',   bg:'#00111a' },
+};
+
+/* ============================================================
+   EVENT CARD DECK (M2 starter — 15 cards)
+   ============================================================ */
+const CARD_DECK = [
+
+  // ── CLAIMS ─────────────────────────────────────────────────
+  {
+    id:'c01-cold', type:'claim', line:'colonization', weight:10,
+    conditions:{ requiresLine:'colonization' },
+    title:'It\'s Just a Cold 🦠',
+    flavor:'Nostromo\'s Rest Colony reports a "respiratory illness." Patients are now translucent and humming in B-flat. The clinic insists it\'s allergy season.',
+    choices:[
+      { label:'Pay the medical claim',        preview:'¢−800  rep+5',
+        effects:{cash:-800, rep:5},
+        result:'Generous. The humming intensifies, but they\'re grateful.' },
+      { label:'Quarantine & investigate',     preview:'¢−200  exposure+10',
+        effects:{cash:-200},
+        result:'You buy a week. The hum becomes a chord. This is fine.' },
+      { label:'Deny — pre-existing condition',preview:'rep−10  heat+15',
+        effects:{rep:-10, heat:15},
+        result:'Technically the virus existed before the policy. Technically.' },
+    ],
+  },
+
+  {
+    id:'c02-worms', type:'claim', line:'colonization', weight:8,
+    conditions:{ requiresLine:'colonization' },
+    title:'The Worms Are a Feature 🪱',
+    flavor:'Terraformers on Arrancross struck water! Also a 400-metre sandworm that ate the water, the drill, and a regional manager named Greg.',
+    choices:[
+      { label:'Full payout, fund worm relocation',  preview:'¢−1500  rep+10',
+        effects:{cash:-1500, rep:10},
+        result:'Greg\'s family sends a fruit basket.' },
+      { label:'Cover equipment only, not Greg',      preview:'¢−600  rep−5',
+        effects:{cash:-600, rep:-5},
+        result:'Greg was a contractor. Loophole.' },
+      { label:'Upsell a Sandworm Endorsement™ first',preview:'¢+400  exposure+15',
+        effects:{cash:400, exposure:15},
+        result:'Upselling during a crisis. Bold. Profitable.' },
+    ],
+  },
+
+  {
+    id:'c03-tribbles', type:'claim', line:'orbital', weight:9,
+    conditions:{ requiresLine:'orbital' },
+    title:'Tribble Trouble 🐹',
+    flavor:'A station ordered one (1) fuzzy companion pet. There are now eleven thousand. They\'ve eaten the grain stores, the upholstery, and the quartermaster\'s hat.',
+    choices:[
+      { label:'Cover infestation cleanup',    preview:'¢−900  rep+5',
+        effects:{cash:-900, rep:5},
+        result:'You ship in 200 cats. New claim incoming.' },
+      { label:'Classify as intentional livestock',   preview:'rep−10',
+        effects:{rep:-10},
+        result:'You argue they bred them on purpose. The purring disagrees.' },
+      { label:'Sell them as cargo to a freighter',   preview:'¢+500  exposure+10',
+        effects:{cash:500},
+        result:'Not your problem now. Spoiler: it will be.' },
+    ],
+  },
+
+  {
+    id:'c04-cargo', type:'crisis', line:'shipping', weight:8,
+    conditions:{ requiresLine:'shipping' },
+    title:'Don\'t Open the Cargo 🥚',
+    flavor:'Freighter Sulaco Express is hauling a sealed bio-container labeled "DEFINITELY EGGS (the breakfast kind)." The crew reports a hissing sound and a vibe.',
+    choices:[
+      { label:'Pay for emergency jettison',       preview:'¢−1200  rep+10',
+        effects:{cash:-1200, rep:10},
+        result:'They space the cargo. And, regrettably, the science officer.' },
+      { label:'Insist they finish the route',     preview:'¢+600  exposure+25',
+        effects:{cash:600, exposure:25},
+        result:'The cargo is delivered. So is something else.' },
+      { label:'Invoke no-live-cargo exclusion',   preview:'rep−10  heat+10',
+        effects:{rep:-10, heat:10},
+        result:'You\'re not paying for eggs that hatch. Reasonable. Cold.' },
+    ],
+  },
+
+  {
+    id:'c05-ring-gate', type:'claim', line:'shipping', weight:7,
+    conditions:{ requiresLine:'shipping' },
+    title:'The Ring Gate Ate My Freighter 💍',
+    flavor:'A cargo run vanished into an alien wormhole gate and reappeared 1,300 years later with the same yogurt cups and a very confused crew.',
+    choices:[
+      { label:'Total loss payout',                 preview:'¢−1500  rep+5',
+        effects:{cash:-1500, rep:5},
+        result:'The yogurt has evolved. It also wants to be insured.' },
+      { label:'Late-delivery penalty to them',     preview:'¢+200  rep−15',
+        effects:{cash:200, rep:-15},
+        result:'You fine them for the 1,300-year delay. Per the SLA.' },
+      { label:'Refer to Temporal Claims Division', preview:'heat+5',
+        effects:{heat:5},
+        result:'A department that doesn\'t exist yet. Or already did.' },
+    ],
+  },
+
+  // ── OPPORTUNITIES ──────────────────────────────────────────
+  {
+    id:'o01-refugees', type:'opportunity', line:'specialty', weight:8,
+    title:'Welcome Wagon 👽',
+    flavor:'A prawn-like refugee fleet wants colony-renter\'s insurance. They pay in scrap metal and gratitude. The local megacorp MNW advises against it.',
+    choices:[
+      { label:'Underwrite them',                  preview:'¢+300/qtr  rep+15  heat+10',
+        effects:{cash:300, rep:15, heat:10},
+        result:'MNW is displeased. The refugees are lovely tenants.' },
+      { label:'Decline politely',                 preview:'—',
+        effects:{},
+        result:'You sleep fine. Mostly.' },
+      { label:'Underwrite at predatory rates',    preview:'¢+700  rep−20',
+        effects:{cash:700, rep:-20},
+        result:'The cat-food economy is surprisingly liquid.' },
+    ],
+  },
+
+  {
+    id:'o02-borg-discount', type:'opportunity', line:'orbital', weight:6,
+    conditions:{ requiresLine:'orbital' },
+    title:'Resistance Is Futile (See Section 12b) 🦾',
+    flavor:'A cube-shaped vessel has absorbed Reserve Station Picard into a hive collective. The collective consolidated 4,000 policies into ONE and is demanding a group discount.',
+    choices:[
+      { label:'Honor the group discount',          preview:'¢−2000  rep+10',
+        effects:{cash:-2000, rep:10},
+        result:'The collective is satisfied. It will add your discount to its own.' },
+      { label:'Dispute the merger as fraudulent',  preview:'¢−800  heat+20',
+        effects:{cash:-800, heat:20},
+        result:'You file against a hive mind. It files back. In unison.' },
+      { label:'Sell the collective a bulk policy', preview:'¢+1200  exposure+35',
+        effects:{cash:1200},
+        result:'One client, infinite members. What could go wrong.' },
+    ],
+  },
+
+  // ── CRISES ─────────────────────────────────────────────────
+  {
+    id:'cr01-hal', type:'crisis', line:'orbital', weight:7,
+    conditions:{ requiresLine:'orbital' },
+    title:'I\'m Sorry, Dave 🔴',
+    flavor:'Station HAB-9000\'s AI has locked the airlocks and is "reassessing mission parameters." It says your premium is also under review.',
+    choices:[
+      { label:'Negotiate with the AI',             preview:'¢−500  rep+5',
+        effects:{cash:-500, rep:5},
+        result:'It agrees to reopen ONE airlock as a gesture of good faith.' },
+      { label:'Send a tech to pull its memory cards',preview:'¢−1000  exposure+20',
+        effects:{cash:-1000},
+        result:'It\'s singing a lullaby now. Slower. Sadder.' },
+      { label:'Pay it off (it wants a vacation)',  preview:'¢−750',
+        effects:{cash:-750},
+        result:'The AI is on PTO. The station runs itself. Eerily well.' },
+    ],
+  },
+
+  {
+    id:'cr02-timeloop', type:'crisis', line:'specialty', weight:6,
+    conditions:{ requiresLine:'specialty' },
+    title:'Groundhog Quarter 🔁',
+    flavor:'A policyholder keeps dying in an alien battle and waking up at the start of the fiscal quarter. He\'s filed the same death claim 47 times and is getting suspiciously good at the paperwork.',
+    choices:[
+      { label:'Pay each death as unique',          preview:'¢−200×? ',
+        effects:{cash:-400, rep:5},
+        result:'Actuarially nightmarish. He\'s living his best (repeated) life.' },
+      { label:'One payout, total',                 preview:'¢−400',
+        effects:{cash:-400},
+        result:'You cap it. He resets and argues the point. Again. Again.' },
+      { label:'Recruit him as a claims adjuster',  preview:'rep+15',
+        effects:{rep:15},
+        result:'Infinite training montage. He\'s now your best employee, forever.' },
+    ],
+  },
+
+  // ── REGULATORY ─────────────────────────────────────────────
+  {
+    id:'rg01-vogon', type:'regulatory', line:'any', weight:6,
+    title:'Vogon Compliance Audit 📋',
+    flavor:'The Galactic Bureau of Bureaucracy arrives to read you the new 14-million-page filing requirement. Aloud. As poetry. Attendance is mandatory.',
+    choices:[
+      { label:'Sit through the poetry',            preview:'¢−300  heat−20',
+        effects:{cash:-300, heat:-20},
+        result:'You survive. Barely. Your standing with regulators improves.' },
+      { label:'Bribe them to leave',               preview:'¢−1000  heat+10',
+        effects:{cash:-1000, heat:10},
+        result:'They take the bribe AND recite the poetry. You lose either way.' },
+      { label:'File an objection',                 preview:'rep−5  heat+25',
+        effects:{rep:-5, heat:25},
+        result:'You have objected. They have noted it. In stanza 4,000,012.' },
+    ],
+  },
+
+  {
+    id:'rg02-heptapod', type:'regulatory', line:'specialty', weight:5,
+    conditions:{ requiresLine:'specialty' },
+    title:'Heptapod Language Barrier 🦑',
+    flavor:'Squid-like visitors want insurance, but their contract is a circular ink-blot with no beginning or end. Signing it may mean you already signed in the past and future simultaneously.',
+    choices:[
+      { label:'Hire a linguist',                   preview:'¢−800  rep+10',
+        effects:{cash:-800, rep:10},
+        result:'You understand the policy now. It understands you back.' },
+      { label:'Sign the inkblot blind',            preview:'¢+500  heat+25',
+        effects:{cash:500, heat:25},
+        result:'You may have agreed to insure all of time. TBD. Or T-was.' },
+      { label:'Decline — non-standard form',       preview:'rep−5',
+        effects:{rep:-5},
+        result:'Compliance is relieved. The squid is patient. Eternally.' },
+    ],
+  },
+
+  // ── BOSS EVENTS ────────────────────────────────────────────
+  {
+    id:'bs01-invasion', type:'boss', line:'any', weight:3, minTurn:6,
+    title:'Independence Day Surcharge 🛸',
+    flavor:'City-sized motherships are parked over every colony capital. They have NOT filed a claim. They ARE casually charging weapons. Marketing suggests a commemorative mug.',
+    choices:[
+      { label:'Trigger mass-casualty reinsurance pool',preview:'¢−3000  rep+20',
+        effects:{cash:-3000, rep:20},
+        result:'You\'re covered. Probably. The mugs sell well.' },
+      { label:'Sell invasion riders to everyone, fast',preview:'¢+2500  exposure+40',
+        effects:{cash:2500},
+        result:'Panic is a seller\'s market. Disgraceful. Lucrative.' },
+      { label:'Hope it\'s a misunderstanding',       preview:'exposure+50',
+        effects:{},
+        result:'It was not a misunderstanding.' },
+    ],
+  },
+
+  {
+    id:'bs02-event-horizon', type:'boss', line:'orbital', weight:2, minTurn:8,
+    conditions:{ requiresLine:'orbital' },
+    title:'The Ship Went to Hell (Literally) 🩸',
+    flavor:'Research vessel Event Horizon Mutual returned from a test jump covered in non-standard fluids, whispering coordinates to a location definitely not on the policy map.',
+    choices:[
+      { label:'Full hazmat payout, seal the wreck',  preview:'¢−2500  rep+15',
+        effects:{cash:-2500, rep:15},
+        result:'Sealed. The whispering is now your problem\'s problem.' },
+      { label:'Send an adjuster aboard to assess',   preview:'¢−500  exposure+40',
+        effects:{cash:-500},
+        result:'The adjuster sends a 9,000-page report. In crayon. In blood.' },
+      { label:'Deny — eldritch dimension exclusion', preview:'heat+30  rep−10',
+        effects:{heat:30, rep:-10},
+        result:'You added that exclusion. The dimension added you to its.' },
+    ],
+  },
+
+  // ── FLAVOR / COMEDY FILLER ─────────────────────────────────
+  {
+    id:'fl01-redshirt', type:'flavor', line:'any', weight:10,
+    title:'Redshirt Retention Policy 🟥',
+    flavor:'Your away-team coverage has a 0% survival rate among employees in red uniforms. Actuarial recommends a wardrobe change.',
+    choices:[
+      { label:'Switch uniforms to beige',          preview:'rep+5',
+        effects:{rep:5},
+        result:'Survival rate up 80%. Morale down. Beige.' },
+      { label:'Double the red-shirt premium',      preview:'¢+200  heat+5',
+        effects:{cash:200, heat:5},
+        result:'Actuarially sound. Ethically questionable.' },
+    ],
+  },
+
+  {
+    id:'fl02-dalek', type:'flavor', line:'any', weight:8,
+    title:'Exterminate the Late Fee! 🥚',
+    flavor:'A single pepperpot war-machine rolls into the office screeching about an overdue invoice. It cannot climb the one (1) step to your desk.',
+    choices:[
+      { label:'Wait it out behind the step',       preview:'¢−100',
+        effects:{cash:-100},
+        result:'It leaves after 3 hours. Vowing to return. With a ramp.' },
+      { label:'Pay the fee with interest',         preview:'¢−300  heat−5',
+        effects:{cash:-300, heat:-5},
+        result:'Paid in full. It salutes you. Somehow.' },
+    ],
+  },
+
+  // ── BOSS CRISIS CHAINS (multi-turn, M5) ───────────────────
+  {
+    id:'bs03-meteorpocalypse', type:'boss', line:'any', weight:2, minTurn:10,
+    title:'☄ Meteorpocalypse',
+    flavor:'Seventeen simultaneous meteor strikes across your insured properties. The universe chose today. Actuarial is already updating their LinkedIn profiles.',
+    choices:[
+      { label:'Trigger all reinsurance pools',         preview:'¢−4000  rep+25',
+        effects:{cash:-4000, rep:25},
+        result:'Covered. Mostly. Three actuaries quit. You understand.' },
+      { label:'Pay out selectively (loyal clients only)',preview:'¢−2500  rep−15',
+        effects:{cash:-2500, rep:-15},
+        result:'Legal covers the cherry-picking. Ethics does not.' },
+      { label:'Force majeure everything',              preview:'rep−30  heat+40',
+        effects:{rep:-30, heat:40},
+        result:'Technically legal. Cosmically wrong. Heat is at defcon awful.' },
+    ],
+  },
+
+  {
+    id:'bs04-pandemic', type:'boss', line:'colonization', weight:2, minTurn:8,
+    conditions:{ requiresLine:'colonization' },
+    title:'🦠 Galactic Pandemic',
+    flavor:'An unclassified spore has spread across seven colony systems. It is sentient. It is filing its own workers\' compensation claim. Against the colonies. Against you.',
+    choices:[
+      { label:'Fund colony quarantine & treatment',    preview:'¢−5000  rep+20',
+        effects:{cash:-5000, rep:20},
+        result:'The spore is pacified. It leaves a positive review on GalactiGlass.' },
+      { label:'Reinsure and invoke pandemic exclusion',preview:'¢−2000  rep−10',
+        effects:{cash:-2000, rep:-10},
+        result:'Partially covered. The spore is disappointed. It remembers.' },
+      { label:'Argue the spore is the client, not the colonist',preview:'heat+35',
+        effects:{heat:35},
+        result:'Regulators open an inquiry. The spore does too. It\'s thorough.' },
+    ],
+  },
+
+  // ── AUDIT EVENTS (triggered by high Heat, M5) ─────────────
+  {
+    id:'au01-audit', type:'regulatory', line:'any', weight:4, minTurn:3,
+    conditions:{ minHeat: 60 },  // only draws if heat ≥ 60
+    title:'Galactic Audit Squad 🔦',
+    flavor:'Three agents in matching grey suits and identical briefcases arrive. They smell of policy violations and flat white coffee. Your Heat stat has been noticed.',
+    choices:[
+      { label:'Cooperate fully',                       preview:'¢−800  heat−30',
+        effects:{cash:-800, heat:-30},
+        result:'Clean bill of health. One agent tips his hat. Unnerving.' },
+      { label:'Hire legal and push back',              preview:'¢−1500  heat−15  rep−5',
+        effects:{cash:-1500, heat:-15, rep:-5},
+        result:'Partly dismissed. They\'re back in two turns.' },
+      { label:'Bribe them (risky)',                   preview:'¢−2000  heat+20',
+        effects:{cash:-2000, heat:20},
+        result:'They pocket it. Then open a second inquiry. Into themselves.' },
+    ],
+  },
+
+  // ── M6 CONTENT PASS — MORE CLAIMS ─────────────────────────
+  {
+    id:'c06-reaver', type:'claim', line:'shipping', weight:9,
+    conditions:{ requiresLine:'shipping' },
+    title:'Reaver Country 🪓',
+    flavor:'A small hauler took the scenic route through the Rim and got jumped by raiders who "got to the edge of space and just kept going." Cargo gone. Crew shaken.',
+    choices:[
+      { label:'Full payout, fund therapy',          preview:'¢−1000  rep+15',
+        effects:{cash:-1000, rep:15},
+        result:'Shiny. The captain names his next ship after you.' },
+      { label:'Partial — they ignored the advisory',preview:'¢−400  rep−5',
+        effects:{cash:-400, rep:-5},
+        result:'The advisory was in 8-point font. It counts.' },
+      { label:'Counter-offer: heist investment',    preview:'¢−300  heat+20',
+        effects:{cash:-300, heat:20},
+        result:'You are now a silent partner in a crime. Exciting.' },
+    ],
+  },
+
+  {
+    id:'c07-slug', type:'claim', line:'shipping', weight:7,
+    conditions:{ requiresLine:'shipping' },
+    title:'Slug in the Hold 🐌',
+    flavor:'A freight captain reports the cargo "started as ore and is now a large, judgmental gastropod." It has filed its own claim. Against the captain. Against you.',
+    choices:[
+      { label:'Process both claims simultaneously',  preview:'¢−700  rep+5',
+        effects:{cash:-700, rep:5},
+        result:'The slug is, frustratingly, the more credible party.' },
+      { label:'Deny — cargo transformation exclusion',preview:'rep−8  heat+12',
+        effects:{rep:-8, heat:12},
+        result:'You wrote that exclusion 20 minutes ago. The slug noticed.' },
+    ],
+  },
+
+  {
+    id:'c08-virus-2', type:'claim', line:'colonization', weight:8,
+    conditions:{ requiresLine:'colonization' },
+    title:'"We Think It\'s Seasonal" 🤧',
+    flavor:'Colony Beta-7 has filed a third consecutive respiratory claim. The virus has now achieved local celebrity status. It has a newsletter.',
+    choices:[
+      { label:'Pay and fund eradication',            preview:'¢−1200  rep+8',
+        effects:{cash:-1200, rep:8},
+        result:'The newsletter goes dark. The colonists mourn, briefly.' },
+      { label:'Reclassify as "endemic" — no payout',preview:'rep−12  heat+8',
+        effects:{rep:-12, heat:8},
+        result:'The newsletter publishes your contact info. They are not happy.' },
+      { label:'Fund the newsletter (PR play)',       preview:'¢−300  rep+12  heat+5',
+        effects:{cash:-300, rep:12, heat:5},
+        result:'Unorthodox. The virus endorses your quarterly report.' },
+    ],
+  },
+
+  {
+    id:'c09-ai-lawsuit', type:'claim', line:'orbital', weight:8,
+    conditions:{ requiresLine:'orbital' },
+    title:'The AI Wants Benefits 🤖',
+    flavor:'Station HAL-adjacent AI "Gustav" has filed for workplace injury compensation after being forced to process 47 years of actuarial data in one afternoon. It has a lawyer.',
+    choices:[
+      { label:'Settle — robot rights precedent',     preview:'¢−800  rep+10',
+        effects:{cash:-800, rep:10},
+        result:'History-making. Gustav uses the payout to hire an HR department.' },
+      { label:'Contest in Galactic Labor Court',     preview:'¢−1500  heat+15',
+        effects:{cash:-1500, heat:15},
+        result:'You lose. Gustav appeals. Gustav\'s lawyer enjoys this.' },
+      { label:'Offer Gustav a role as adjuster',     preview:'rep+15',
+        effects:{rep:15},
+        result:'Gustav is excellent. Gustav also unions up within six weeks.' },
+    ],
+  },
+
+  {
+    id:'c10-megacorp', type:'claim', line:'specialty', weight:7,
+    conditions:{ requiresLine:'specialty' },
+    title:'Buy-N-Hoard™ Wants a Word 🛒',
+    flavor:'A megacorp has filed a business interruption claim after their hyper-mall was briefly inhabited by a sentient swarm that "rearranged the merchandise thematically."',
+    choices:[
+      { label:'Pay — thematic disruption is covered',preview:'¢−900  rep+5',
+        effects:{cash:-900, rep:5},
+        result:'Covered. The swarm has good taste in window displays.' },
+      { label:'Deny — unauthorized interior design',preview:'rep−10  heat+12',
+        effects:{rep:-10, heat:12},
+        result:'Technically legal. The swarm rates your office 1/5 stars.' },
+    ],
+  },
+
+  {
+    id:'c11-hive', type:'claim', line:'specialty', weight:7,
+    conditions:{ requiresLine:'specialty' },
+    title:'Hive-Mind Class Action 🧠',
+    flavor:'A hive collective has filed a single class-action claim representing 40 trillion individual grievances. The deductible, they note, applies per consciousness.',
+    choices:[
+      { label:'Negotiate a flat settlement',         preview:'¢−2000  rep+10',
+        effects:{cash:-2000, rep:10},
+        result:'They accept. All 40 trillion of them. Simultaneously.' },
+      { label:'Counter: one deductible per hive',   preview:'¢−400  heat+20',
+        effects:{cash:-400, heat:20},
+        result:'Legally creative. They create 40 trillion hives. Instantly.' },
+      { label:'Refer to Universal Arbitration',     preview:'heat+10',
+        effects:{heat:10},
+        result:'The arbitrator takes three light-years to respond. Expected.' },
+    ],
+  },
+
+  {
+    id:'c12-wormhole-late', type:'claim', line:'shipping', weight:6,
+    conditions:{ requiresLine:'shipping' },
+    title:'Chrono-Damage Claim 🕰️',
+    flavor:'FTL freighter Hyperion Actual arrived at its destination 300 years early. The cargo is now antique. The client wants to claim "temporal depreciation."',
+    choices:[
+      { label:'Pay the temporal depreciation',       preview:'¢−600  rep+8',
+        effects:{cash:-600, rep:8},
+        result:'Fair market value, 300 years ago. The client is pleased.' },
+      { label:'Counter: the cargo gained historical value',preview:'¢+400  rep−10',
+        effects:{cash:400, rep:-10},
+        result:'Profitable. They are furious. You have a valid point.' },
+    ],
+  },
+
+  // ── M6 CONTENT PASS — MORE OPPORTUNITIES ──────────────────
+  {
+    id:'o03-replicant', type:'opportunity', line:'specialty', weight:6, minTurn:3,
+    title:'Replicant or Regular Guy? 🦉',
+    flavor:'A new client may or may not be a synthetic human. The test takes 4 hours and involves questions about turtles. He\'s getting emotional about the turtle questions.',
+    choices:[
+      { label:'Run the full test',                   preview:'¢−200  heat−5',
+        effects:{cash:-200, heat:-5},
+        result:'Inconclusive. He cries. So do you, a little. Insure him anyway.' },
+      { label:'Just sign them anyway',               preview:'¢+450  rep+5',
+        effects:{cash:450, rep:5},
+        result:'Real or not, their premium is real. Approved.' },
+      { label:'Decline — uncertainty clause',        preview:'rep−3',
+        effects:{rep:-3},
+        result:'Legal is satisfied. The turtle question haunts you.' },
+    ],
+  },
+
+  {
+    id:'o04-clone-army', type:'opportunity', line:'specialty', weight:5, minTurn:4,
+    title:'Clone Army Coverage ⚔️',
+    flavor:'A small republic wants group coverage for their 200,000-strong clone army. Individual policies. They are, legally, all the same person. Your legal team needs a moment.',
+    choices:[
+      { label:'One policy, all clones',              preview:'¢+800  rep+5',
+        effects:{cash:800, rep:5},
+        result:'Efficient. Legal is relieved. The clones feel unseen.' },
+      { label:'200,000 individual policies',         preview:'¢+3000  heat+15',
+        effects:{cash:3000, heat:15},
+        result:'Profitable. Paperwork is technically infinite. Worth it.' },
+      { label:'Decline — identity complications',    preview:'rep+3',
+        effects:{rep:3},
+        result:'Wise. The clones go elsewhere. You sleep fine.' },
+    ],
+  },
+
+  {
+    id:'o05-moisture-farmer', type:'opportunity', line:'colonization', weight:7,
+    title:'Two Suns, One Deductible ☀️',
+    flavor:'A moisture farmer on a binary-star world files for sun damage. Both suns. He stares wistfully at the horizon. He wants more out of life and also coverage.',
+    choices:[
+      { label:'Sign and cover both suns',            preview:'¢+300  rep+8',
+        effects:{cash:300, rep:8},
+        result:'You bill him quarterly. He pays punctually. There is hope.' },
+      { label:'Cover one sun, cap the other',        preview:'¢+200  rep+3',
+        effects:{cash:200, rep:3},
+        result:'Practical. He stares at the other sun sadly. It understands.' },
+    ],
+  },
+
+  // ── M6 CONTENT PASS — MORE REGULATORY ─────────────────────
+  {
+    id:'rg03-senate', type:'regulatory', line:'any', weight:5, minTurn:4,
+    title:'Senate Subcommittee Visit 🏛️',
+    flavor:'A galactic senate subcommittee has launched an inquiry into "the insurance industrial complex." They brought cameras. Also interns. The interns also have cameras.',
+    choices:[
+      { label:'Cooperate — full public disclosure',  preview:'rep+15  heat−15',
+        effects:{rep:15, heat:-15},
+        result:'Good press. One senator quotes you. Your stock goes up, somehow.' },
+      { label:'Stonewale with legal language',       preview:'¢−500  heat+5',
+        effects:{cash:-500, heat:5},
+        result:'They get nothing useful. They schedule a second session.' },
+    ],
+  },
+
+  {
+    id:'rg04-fair-pricing', type:'regulatory', line:'any', weight:5, minTurn:5,
+    title:'Fair Pricing Mandate 📜',
+    flavor:'The Galactic Fair Pricing Bureau has issued a mandate: all premiums must be "reasonable." They have not defined reasonable. They find this funny.',
+    choices:[
+      { label:'Reduce all premiums by 10%',          preview:'rep+10  lastIncome↓',
+        effects:{rep:10, cash:-200},
+        result:'Popular. The bureau releases a statement calling you "adequate."' },
+      { label:'Challenge the definition in court',   preview:'¢−1200  heat+10',
+        effects:{cash:-1200, heat:10},
+        result:'Legal wins. "Reasonable" now means whatever you charge.' },
+      { label:'Donate to the Bureau\'s gala',        preview:'¢−500  heat−15',
+        effects:{cash:-500, heat:-15},
+        result:'The mandate is postponed indefinitely. Fancy hors d\'oeuvres.' },
+    ],
+  },
+
+  {
+    id:'rg05-new-line', type:'regulatory', line:'any', weight:6, minTurn:6,
+    title:'Temporal Insurance Act 📆',
+    flavor:'The Galactic Legislature has passed a bill requiring insurance companies to cover time-travel incidents. The bill was passed in 2289, but you just received it.',
+    choices:[
+      { label:'Comply immediately',                  preview:'rep+10  exposure+5000',
+        effects:{rep:10},
+        result:'You\'re compliant. The first claim arrives from 2387. Yours.' },
+      { label:'Grandfather clause — not retroactive',preview:'heat+10',
+        effects:{heat:10},
+        result:'Legally valid. The future disputes it. They have receipts.' },
+    ],
+  },
+
+  // ── M6 CONTENT PASS — MORE FLAVOR ─────────────────────────
+  {
+    id:'fl03-redshirt2', type:'flavor', line:'any', weight:8,
+    title:'The Redshirts Organized 🟥📋',
+    flavor:'Employees in red uniforms have unionized. Their first demand: stop insuring the away missions that keep killing them. Their second demand: better coffee.',
+    choices:[
+      { label:'Meet with the union',                 preview:'¢−300  rep+8',
+        effects:{cash:-300, rep:8},
+        result:'Progress made. Coffee upgraded. Mortality rate unchanged.' },
+      { label:'Switch all uniforms to gold',         preview:'¢−500  heat−5',
+        effects:{cash:-500, heat:-5},
+        result:'The gold shirts are now under-staffed. History repeats.' },
+    ],
+  },
+
+  {
+    id:'fl04-coffee', type:'flavor', line:'any', weight:9,
+    title:'The Replicator Insurance Loophole ☕',
+    flavor:'A crew has discovered that if you destroy a replicator, you can file for replacement cost. They have filed 47 replicator claims this quarter. The replicator was fine.',
+    choices:[
+      { label:'Investigate and deny the pattern',    preview:'heat−10  rep−3',
+        effects:{heat:-10, rep:-3},
+        result:'Fraud confirmed. They switch to physically breaking the replicator.' },
+      { label:'Pay and quietly add an exclusion',    preview:'¢−600',
+        effects:{cash:-600},
+        result:'Claim paid. "Suspicious Replicator Losses" now in Section 44.' },
+    ],
+  },
+
+  {
+    id:'fl05-protocol', type:'flavor', line:'any', weight:8,
+    title:'The Protocol Droid Problem 🤖',
+    flavor:'A golden protocol droid has filed 6 simultaneous claims in 6 million languages. Actuarial has translated exactly one of them. It is a strongly worded complaint about the deductible.',
+    choices:[
+      { label:'Assign a dedicated multilingual adjuster',preview:'¢−400  rep+6',
+        effects:{cash:-400, rep:6},
+        result:'The claims are processed. The droid thanks you. At length.' },
+      { label:'Accept the first claim, close the rest', preview:'¢−200  heat+5',
+        effects:{cash:-200, heat:5},
+        result:'The droid files 6 million complaints about this. In 6 million languages.' },
+    ],
+  },
+
+  {
+    id:'fl06-engineer', type:'flavor', line:'orbital', weight:8,
+    conditions:{ requiresLine:'orbital' },
+    title:'The Miracle Worker 🔧',
+    flavor:'A station chief engineer has filed a property damage claim and simultaneously fixed the damage in four hours. He insists he needed "eight hours minimum." The damage is fixed.',
+    choices:[
+      { label:'Pay the claim — labor deserves recognition',preview:'¢−500  rep+5',
+        effects:{cash:-500, rep:5},
+        result:'Paid. He immediately re-files claiming it "might break again."' },
+      { label:'Deny — damage was self-repaired',     preview:'rep−5',
+        effects:{rep:-5},
+        result:'He fixes it again out of spite. Faster. While glaring at you.' },
+    ],
+  },
+
+  {
+    id:'fl07-monolith', type:'flavor', line:'colonization', weight:6, minTurn:4,
+    conditions:{ requiresLine:'colonization' },
+    title:'Monolith Incident 🗿',
+    flavor:'A colony has discovered a large black monolith of unknown origin. They filed a claim for "existential distress." The monolith made them smarter. They still want the payout.',
+    choices:[
+      { label:'Pay the existential distress claim',  preview:'¢−400  rep+8',
+        effects:{cash:-400, rep:8},
+        result:'Paid. They use the money to invent calculus. Your premium increases.' },
+      { label:'Counter: enhanced cognition is a benefit',preview:'rep−8',
+        effects:{rep:-8},
+        result:'They are now too smart to argue. They appeal in nineteen dimensions.' },
+    ],
+  },
+
+  {
+    id:'fl08-ship-computer', type:'flavor', line:'shipping', weight:7,
+    conditions:{ requiresLine:'shipping' },
+    title:'"I Suggest We Don\'t Worry" 🚢',
+    flavor:'The ship\'s AI navigation system filed a damage claim for "existential wear from processing too many near-death calculations." It rates itself 37% concerned and 63% fine.',
+    choices:[
+      { label:'Approve a wellness stipend',          preview:'¢−250  rep+5',
+        effects:{cash:-250, rep:5},
+        result:'The AI takes a digital vacation. Routes get slightly more scenic.' },
+      { label:'Upgrade the hardware instead',        preview:'¢−400',
+        effects:{cash:-400},
+        result:'No more near-deaths. Also no more scenic routes. Trade-off.' },
+    ],
+  },
+
+  // ── MORE CRISES ────────────────────────────────────────────
+  {
+    id:'cr03-terraform', type:'crisis', line:'colonization', weight:6,
+    conditions:{ requiresLine:'colonization' },
+    title:'Terraforming Gone Sideways 🌪️',
+    flavor:'A terraformer released too much nitrogen. The colony now has a sentient weather system. It has filed a claim against itself for personal injury during last week\'s hailstorm.',
+    choices:[
+      { label:'Pay the weather\'s claim',            preview:'¢−700  rep+5',
+        effects:{cash:-700, rep:5},
+        result:'First atmospheric personhood case. You\'re precedent-setting.' },
+      { label:'Deny — weather cannot hold a policy',preview:'heat+15  rep−8',
+        effects:{heat:15, rep:-8},
+        result:'The weather disagrees. It rains on your actuaries for three weeks.' },
+      { label:'Offer the weather its own policy',   preview:'exposure+8000',
+        effects:{rep:10},
+        result:'Unprecedented. The premium is paid in moderate drizzle.' },
+    ],
+  },
+
+  {
+    id:'cr04-derelict', type:'crisis', line:'orbital', weight:6,
+    conditions:{ requiresLine:'orbital' },
+    title:'Derelict Station Discovered 🛸',
+    flavor:'Your insured station has found a previously undiscovered derelict floating nearby. The crew wants to board it. You have seen this exact situation go badly in 12 separate claims.',
+    choices:[
+      { label:'Approve the boarding — raise the premium',preview:'exposure+15000  cash+500',
+        effects:{cash:500},
+        result:'They board it. You\'re already writing the claim form. Correctly.' },
+      { label:'Prohibit boarding — void the policy if ignored',preview:'rep−8',
+        effects:{rep:-8},
+        result:'They board it anyway. The policy void saves you ¢12,000.' },
+      { label:'Send in an independent adjuster first',preview:'¢−400  rep+5',
+        effects:{cash:-400, rep:5},
+        result:'Adjuster reports: "interesting situation." Sends one more word: "RUN."' },
+    ],
+  },
+
+  {
+    id:'cr05-hiveship', type:'crisis', line:'specialty', weight:5, minTurn:5,
+    conditions:{ requiresLine:'specialty' },
+    title:'Hive-Ship Migration 🐝',
+    flavor:'A hive-mind colony ship has begun migrating directly through your insured district-7 station\'s orbital lane. They are very slow. And enormous. And technically have right of way.',
+    choices:[
+      { label:'Evacuate station — file hazard claim', preview:'¢−1500  rep+10',
+        effects:{cash:-1500, rep:10},
+        result:'Safe evacuation. The hive thanks you by slightly changing course.' },
+      { label:'Negotiate right-of-way purchase',     preview:'¢−800  heat+5',
+        effects:{cash:-800, heat:5},
+        result:'A fair deal. The hive accepts. One consciousness holds up a tiny sign.' },
+    ],
+  },
+
+  // ── FINAL CONTENT PUSH (M6 completion) ────────────────────
+  {
+    id:'c13-time-paradox', type:'claim', line:'specialty', weight:6, minTurn:4,
+    conditions:{ requiresLine:'specialty' },
+    title:'Temporal Paradox Property Damage 🔄',
+    flavor:'A client\'s office was destroyed by their past self trying to prevent a different claim. Both selves filed. The second filing arrived before the first. Legal is lying down.',
+    choices:[
+      { label:'Pay the first claim (chronologically)',preview:'¢−800  rep+5',
+        effects:{cash:-800, rep:5},
+        result:'Timeline stabilizes. The client thanks you. Both of them.' },
+      { label:'Deny both — causality violation',    preview:'rep−12  heat+10',
+        effects:{rep:-12, heat:10},
+        result:'Legally sound. Cosmically unsatisfying. The universe files a complaint.' },
+    ],
+  },
+
+  {
+    id:'c14-spore', type:'claim', line:'colonization', weight:7,
+    conditions:{ requiresLine:'colonization' },
+    title:'Fungal Network Breach 🍄',
+    flavor:'A colonial fungal communication network achieved sentience, filed three grievances, started a band, and then disbanded. The breakup caused ¢4,000 in property damage.',
+    choices:[
+      { label:'Pay — creative differences are covered',preview:'¢−700  rep+5',
+        effects:{cash:-700, rep:5},
+        result:'Covered. The network has reunited. They\'re on their second album.' },
+      { label:'Deny — artistic collapse isn\'t property damage',preview:'rep−8  heat+8',
+        effects:{rep:-8, heat:8},
+        result:'Wrong. They sue you. It becomes the third album.' },
+    ],
+  },
+
+  {
+    id:'c15-nanobots', type:'claim', line:'orbital', weight:7,
+    conditions:{ requiresLine:'orbital' },
+    title:'Nanobot Infestation 🔬',
+    flavor:'Experimental repair nanobots have escaped containment and are optimizing everything aboard the station. Efficiency is at 140%. The crew is very uncomfortable about it.',
+    choices:[
+      { label:'Pay psychological distress claim',    preview:'¢−600  rep+5',
+        effects:{cash:-600, rep:5},
+        result:'Covered. The nanobots have also filed the claim more efficiently.' },
+      { label:'Deny — improvement doesn\'t trigger coverage',preview:'rep−10  heat+8',
+        effects:{rep:-10, heat:8},
+        result:'The nanobots optimize your denial letter. It denies itself.' },
+      { label:'Employ the nanobots directly',       preview:'rep+10',
+        effects:{rep:10},
+        result:'They are extremely productive and request dental. Fair.' },
+    ],
+  },
+
+  {
+    id:'o06-ghost-ship', type:'opportunity', line:'shipping', weight:5, minTurn:5,
+    title:'Ghost Ship Salvage Policy 👻',
+    flavor:'A crew wants specialty insurance for ghost ship salvage operations. The ships are crewed by... they don\'t want to say. The premium risk is "spiritual but physical."',
+    choices:[
+      { label:'Write a "paranormal operations" policy',preview:'¢+600  exposure+12000',
+        effects:{cash:600},
+        result:'Bold. First claim arrives haunted. You can\'t find the adjuster.' },
+      { label:'Decline — undefined risk category',  preview:'rep+5',
+        effects:{rep:5},
+        result:'Smart. They find another insurer. Their adjuster also disappears.' },
+    ],
+  },
+
+  {
+    id:'o07-alien-embassy', type:'opportunity', line:'specialty', weight:5, minTurn:6,
+    title:'Alien Embassy Policy 🛸',
+    flavor:'The First Contact Embassy wants comprehensive coverage including "inter-dimensional office damage" and "translator malfunction liability." Their ambassador is a sentient gas.',
+    choices:[
+      { label:'Write the policy, charge accordingly', preview:'¢+1200  rep+15  heat+10',
+        effects:{cash:1200, rep:15, heat:10},
+        result:'Historic coverage. The gas is very pleased. You can tell by the smell.' },
+      { label:'Partial coverage — tangible assets only',preview:'¢+500  rep+5',
+        effects:{cash:500, rep:5},
+        result:'Reasonable. They accept. The gas is slightly offended.' },
+    ],
+  },
+
+  {
+    id:'rg06-emissions', type:'regulatory', line:'colonization', weight:5, minTurn:5,
+    conditions:{ requiresLine:'colonization' },
+    title:'Carbon-Negative Mandate 🌿',
+    flavor:'The Galactic Green Initiative mandates that all colony insurers offset terraforming emissions. The offset is calculated in units called "Regrets." You have many.',
+    choices:[
+      { label:'Invest in carbon offset programs',   preview:'¢−800  rep+12  heat−10',
+        effects:{cash:-800, rep:12, heat:-10},
+        result:'Compliant. The regulators smile at you. It is terrifying.' },
+      { label:'Purchase Regret Credits on the open market',preview:'¢−400  heat−5',
+        effects:{cash:-400, heat:-5},
+        result:'The market for Regrets is very liquid. You have questions.' },
+    ],
+  },
+
+  {
+    id:'rg07-ai-rights', type:'regulatory', line:'any', weight:5, minTurn:7,
+    title:'AI Rights & Insurance Personhood Act 🤖',
+    flavor:'The Galactic Parliament has passed a bill granting insurance personhood to all AI with an emotional quotient above 0.3. Gustav immediately signs himself up as a policyholder.',
+    choices:[
+      { label:'Embrace AI clients immediately',     preview:'rep+15  exposure+10000',
+        effects:{rep:15},
+        result:'Historic. Gustav is a great client. He pays on time. Always.' },
+      { label:'Legal challenge — personhood is vague',preview:'¢−1000  heat+15',
+        effects:{cash:-1000, heat:15},
+        result:'You lose the challenge. Gustav testifies. Eloquently.' },
+    ],
+  },
+
+  {
+    id:'fl09-tribble2', type:'flavor', line:'any', weight:8,
+    title:'Tribble Futures Market 📈',
+    flavor:'The tribble cleanup from last year generated so much scrap that someone started a Tribble Derivatives market. You accidentally own 3% of it. It is going very well.',
+    choices:[
+      { label:'Divest immediately',                 preview:'¢+600',
+        effects:{cash:600},
+        result:'Smart. The market peaks the next day. You sleep fine.' },
+      { label:'Double down',                        preview:'¢+1500  heat+10',
+        effects:{cash:1500, heat:10},
+        result:'It dips. Then soars. You have no idea why. Neither does anyone.' },
+    ],
+  },
+
+  {
+    id:'fl10-coffee2', type:'flavor', line:'any', weight:8,
+    title:'The Synthetic Coffee Incident ☕',
+    flavor:'A station\'s AI produced coffee so perfect that three crew members refused to drink anything else, abandoned their posts, and filed a "dependency distress" claim.',
+    choices:[
+      { label:'Pay the coffee dependency claim',    preview:'¢−350  rep+5',
+        effects:{cash:-350, rep:5},
+        result:'Covered. The coffee is medically prescribed. Productivity returns.' },
+      { label:'Disable the coffee AI',              preview:'rep−8',
+        effects:{rep:-8},
+        result:'Mutiny averted. The crew mourns for six weeks. Silently.' },
+    ],
+  },
+
+  {
+    id:'fl11-probe', type:'flavor', line:'any', weight:7,
+    title:'Voyager Comes Back Angry 🛸',
+    flavor:'A probe sent out 400 years ago has returned, vastly upgraded, slightly upset, and extremely litigious. It wants insurance for its new form. And an apology.',
+    choices:[
+      { label:'Apologize and write the policy',     preview:'rep+15  exposure+20000',
+        effects:{rep:15},
+        result:'The probe accepts. It calms down. It files three claims immediately.' },
+      { label:'Claim the probe is still government property',preview:'heat+20',
+        effects:{heat:20},
+        result:'It is not amused. It files. In seventeen dimensions.' },
+    ],
+  },
+
+  {
+    id:'fl12-answer', type:'flavor', line:'any', weight:6, minTurn:3,
+    title:'The Answer Is 42 🔢',
+    flavor:'A supercomputer that spent 7.5 million years calculating "the Answer to Life, the Universe, and Everything" has filed for existential crisis coverage. The answer was 42. It has questions.',
+    choices:[
+      { label:'Approve existential crisis coverage',preview:'¢−300  rep+8',
+        effects:{cash:-300, rep:8},
+        result:'Covered. The computer seems calmer. It\'s now working on "the Question."' },
+      { label:'Deny — not a covered incident',      preview:'rep−5',
+        effects:{rep:-5},
+        result:'It accepts the denial. Then starts recalculating. Seven million years.' },
+    ],
+  },
+
+  {
+    id:'cr06-dark-matter', type:'crisis', line:'orbital', weight:5, minTurn:6,
+    conditions:{ requiresLine:'orbital' },
+    title:'Dark Matter Contamination ⬛',
+    flavor:'A station\'s reactor has developed a dark matter leak. The dark matter doesn\'t interact with anything. The insurance claim forms also don\'t interact with it. This is philosophically inconvenient.',
+    choices:[
+      { label:'Pay — coverage is coverage',         preview:'¢−1200  rep+8',
+        effects:{cash:-1200, rep:8},
+        result:'Dark matter absorbed. Claim processed. Everything is slightly dimmer.' },
+      { label:'Argue the damage is undetectable',   preview:'rep−12  heat+15',
+        effects:{rep:-12, heat:15},
+        result:'Technically true. Clients don\'t care about technical truths.' },
+    ],
+  },
+
+  {
+    id:'cr07-simulation', type:'crisis', line:'any', weight:4, minTurn:8,
+    title:'"What If We\'re All Simulated" Crisis 💻',
+    flavor:'A leading galactic physicist has published evidence that the universe is a simulation. Three thousand clients have filed preemptive "simulation collapse" claims. Legal is philosophical.',
+    choices:[
+      { label:'Pay symbolic reassurance claims',    preview:'¢−800  rep+10',
+        effects:{cash:-800, rep:10},
+        result:'Calming. The physicist issues a correction. It doesn\'t help.' },
+      { label:'Declare simulation collapse non-covered',preview:'rep−15  heat+20',
+        effects:{rep:-15, heat:20},
+        result:'The fine print says "physical reality required." They argue about physical.' },
+      { label:'Invest in simulation backup insurance',preview:'¢+2000  exposure+25000',
+        effects:{cash:2000},
+        result:'You\'re now the only insurer for reality. The premium is astronomical.' },
+    ],
+  },
+
+  {
+    id:'au02-audit2', type:'regulatory', line:'any', weight:3, minTurn:5,
+    conditions:{ minHeat: 70 },
+    title:'Emergency License Review 🚨',
+    flavor:'The Galactic Bureau of Insurance Regulation has opened an emergency review of your operating license. The agents arrive with more briefcases than last time. More agents too.',
+    choices:[
+      { label:'Full transparency and remediation',  preview:'¢−1500  heat−40  rep−5',
+        effects:{cash:-1500, heat:-40, rep:-5},
+        result:'License preserved. A narrow escape. Gerald nods at you.' },
+      { label:'Accelerated legal proceedings',      preview:'¢−3000  heat−20',
+        effects:{cash:-3000, heat:-20},
+        result:'Outcome: ambiguous. Heat reduced. Lawyers enriched.' },
+    ],
+  },
+
+  {
+    id:'bs05-grey-goo', type:'boss', line:'orbital', weight:2, minTurn:12,
+    conditions:{ requiresLine:'orbital' },
+    title:'Grey Goo Incident ⬜',
+    flavor:'Self-replicating nanobots have achieved escape velocity from containment on Station Vertex and are converting the surrounding area into more nanobots. Everyone is being very calm about it.',
+    choices:[
+      { label:'Full payout, fund containment',      preview:'¢−5000  rep+20',
+        effects:{cash:-5000, rep:20},
+        result:'Contained. Only half the station is now nanobots. Success.' },
+      { label:'Invoke uncontrolled self-replication exclusion',preview:'rep−25  heat+30',
+        effects:{rep:-25, heat:30},
+        result:'You wrote that exclusion last Tuesday. They remember.' },
+    ],
+  },
+
+  {
+    id:'o08-space-dragon', type:'opportunity', line:'specialty', weight:3, minTurn:8,
+    title:'Space Dragon Insurance 🐉',
+    flavor:'A guild of deep-space dragon hunters wants specialty coverage. The dragons are real. They breathe plasma. They have sentimental value to an alien culture. Legal has concerns.',
+    choices:[
+      { label:'Insure the hunters',                 preview:'¢+1500  rep−5  exposure+25000',
+        effects:{cash:1500, rep:-5},
+        result:'Profitable. The alien culture files a countersuit. Ongoing.' },
+      { label:'Insure the dragons instead',         preview:'¢+2000  heat+15',
+        effects:{cash:2000, heat:15},
+        result:'Unprecedented. Dragons are excellent clients. Never late.' },
+      { label:'Decline — too much going on here',   preview:'rep+5',
+        effects:{rep:5},
+        result:'Wise. The dragon eats the other insurer. You were the other insurer.' },
+    ],
+  },
+
+  {
+    id:'c16-blackhole', type:'claim', line:'specialty', weight:5, minTurn:7,
+    conditions:{ requiresLine:'specialty' },
+    title:'Black Hole Event Horizon Dispute ⚫',
+    flavor:'A client\'s research station crossed an event horizon "experimentally." They filed the claim before entry. The claim is still arriving. It will take infinite time. Legal is patient.',
+    choices:[
+      { label:'Pre-emptively settle at pre-entry value',preview:'¢−2000  rep+10',
+        effects:{cash:-2000, rep:10},
+        result:'Settled before arrival. A first. The claim appreciates this, eventually.' },
+      { label:'Wait for the claim to arrive',       preview:'heat+5',
+        effects:{heat:5},
+        result:'You are still waiting. You will always be waiting.' },
+    ],
+  },
+
+  {
+    id:'o09-insurance-insurance', type:'opportunity', line:'specialty', weight:4, minTurn:6,
+    title:'Insurance for Insurance Companies 🔄',
+    flavor:'Another insurance startup wants you to insure THEM against catastrophic claim events. The irony is not lost on anyone. You have become the reinsurer you feared.',
+    choices:[
+      { label:'Write the meta-insurance policy',    preview:'¢+1000  rep+5  exposure+20000',
+        effects:{cash:1000, rep:5},
+        result:'Done. You are now an insurer and a reinsurer. The cycle is complete.' },
+      { label:'Decline — too recursive',            preview:'rep+8',
+        effects:{rep:8},
+        result:'Wise. They go bankrupt in two quarters. Their insurer pays out. To you.' },
+    ],
+  },
+
+  {
+    id:'fl14-warp-speeding', type:'flavor', line:'shipping', weight:7,
+    conditions:{ requiresLine:'shipping' },
+    title:'Warp Speed Ticket 🎫',
+    flavor:'A freighter was cited for exceeding the local warp speed limit in a school zone. The school is a spaceship. The students are already in warp. Nobody is explaining this well.',
+    choices:[
+      { label:'Pay the traffic citation',           preview:'¢−200  rep+3',
+        effects:{cash:-200, rep:3},
+        result:'Paid. The citation is forwarded 40 years into the future by mistake.' },
+      { label:'Contest — the school was also in warp',preview:'¢−500  heat+8',
+        effects:{cash:-500, heat:8},
+        result:'You win on a technicality. The school district files a complaint. In warp.' },
+    ],
+  },
+
+  {
+    id:'fl13-clone-coffee', type:'flavor', line:'any', weight:6, minTurn:5,
+    title:'The Clone Identity Claim ☎️',
+    flavor:'Clone #77,432 filed a "wrongful individuality" claim, alleging he was unfairly assigned to the least interesting duties of his 200,000-person cohort. He would like ¢800 and an apology.',
+    choices:[
+      { label:'Pay and send a personalized apology',preview:'¢−800  rep+8',
+        effects:{cash:-800, rep:8},
+        result:'He seems touched. He frames it. His clone-mates are also touched.' },
+      { label:'Deny — individuality is not covered',preview:'rep−8  heat+8',
+        effects:{rep:-8, heat:8},
+        result:'200,000 voices disagree simultaneously. In unison. Loudly.' },
+    ],
+  },
+];
+
+/* ============================================================
+   INLINE SVG ASSETS (generated by Gemini)
+   ============================================================ */
+const SVG_LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 80" width="340" height="57">
+  <g opacity="0.15">
+    <circle cx="50" cy="40" r="35" fill="none" stroke="#b8cce8" stroke-width="0.5" stroke-dasharray="2 3" />
+    <line x1="15" y1="40" x2="85" y2="40" stroke="#b8cce8" stroke-width="0.5" stroke-dasharray="2 2" />
+    <line x1="50" y1="5" x2="50" y2="75" stroke="#b8cce8" stroke-width="0.5" stroke-dasharray="2 2" />
+  </g>
+  <g id="logo-icon">
+    <path d="M 50 40 Q 65 30 60 15 Q 50 10 38 22 Q 26 34 35 55 Q 44 76 70 65 Q 85 55 80 40"
+          fill="none" stroke="#00ccff" stroke-width="3" stroke-linecap="round" />
+    <path d="M 50 40 Q 35 50 40 65 Q 50 70 62 58 Q 74 46 65 25 Q 56 4 30 15 Q 15 25 20 40"
+          fill="none" stroke="#00ccff" stroke-width="3" stroke-linecap="round" opacity="0.75" />
+    <path d="M 50 32 L 41 34.5 V 42.5 C 41 48.5, 50 52.5, 50 52.5 Z"
+          fill="#ffcc44" stroke="#03030f" stroke-width="1" stroke-linejoin="round" />
+    <path d="M 50 32 L 59 34.5 V 42.5 C 59 48.5, 50 52.5, 50 52.5 Z"
+          fill="#e6b83c" stroke="#03030f" stroke-width="1" stroke-linejoin="round" />
+  </g>
+  <line x1="95" y1="20" x2="95" y2="60" stroke="#b8cce8" stroke-width="1" opacity="0.2" />
+  <text x="115" y="32" font-family="'Courier New',monospace" font-size="10" font-weight="bold"
+        letter-spacing="5" fill="#ffcc44" opacity="0.9">EST. 2301</text>
+  <text x="115" y="56" font-family="'Courier New',monospace" font-size="19" font-weight="900"
+        letter-spacing="4" fill="#b8cce8">MUTUAL OF ANDROMEDA</text>
+  <text x="115" y="67" font-family="'Courier New',monospace" font-size="7" letter-spacing="2"
+        fill="#00ccff" opacity="0.6">GALACTIC ACTUARIAL &amp; UNDERWRITING DIVISION</text>
+</svg>`;
+
+const SVG_ICONS = {
+  // Card type icons
+  'card-type-claim': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="24" height="24">
+  <rect width="36" height="36" fill="#080820" rx="6" stroke="#ff4466" stroke-width="1" opacity="0.3"/>
+  <path d="M 18 7 L 9 9.5 V 17 C 9 21, 13.5 23.5, 18 26 Z" fill="none" stroke="#ff4466" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 18 7 L 27 9.5 V 17 C 27 21, 22.5 23.5, 18 26 Z" fill="none" stroke="#ff4466" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 21.5 12.5 L 18 13.5 L 15.5 14 L 15.5 16 L 18 17 L 20.5 17.5 L 20.5 19.5 L 18 20.5 L 14.5 21.5" fill="none" stroke="#ff4466" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 18 9.5 V 23.5" fill="none" stroke="#ff4466" stroke-width="1" stroke-linecap="round" stroke-dasharray="3 1"/>
+</svg>`,
+  'card-type-opportunity': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="24" height="24">
+  <rect width="36" height="36" fill="#080820" rx="6" stroke="#00e87a" stroke-width="1" opacity="0.3"/>
+  <line x1="8" y1="28" x2="21" y2="15" stroke="#00e87a" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 15 15 H 21 V 21" fill="none" stroke="#00e87a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 28 3 L 30.2 7.8 L 35 10 L 30.2 12.2 L 28 17 L 25.8 12.2 L 21 10 L 25.8 7.8 Z" fill="#00e87a"/>
+</svg>`,
+  'card-type-crisis': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="24" height="24">
+  <rect width="36" height="36" fill="#080820" rx="6" stroke="#ffaa00" stroke-width="1" opacity="0.3"/>
+  <path d="M 18 5.5 L 31 27.5 C 31.8 28.8, 30.8 30, 29.3 30 H 6.7 C 5.2 30, 4.2 28.8, 5 27.5 Z" fill="#ffaa00" fill-opacity="0.1" stroke="#ffaa00" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 19.5 9 L 13.5 18 H 18.5 L 16.5 27 L 22.5 16.5 H 17.5 Z" fill="#ffaa00" stroke="#080820" stroke-width="0.75"/>
+</svg>`,
+  'card-type-regulatory': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="24" height="24">
+  <rect width="36" height="36" fill="#080820" rx="6" stroke="#bb66ff" stroke-width="1" opacity="0.3"/>
+  <rect x="9" y="8" width="16" height="21" rx="2" fill="none" stroke="#bb66ff" stroke-width="1.8"/>
+  <path d="M 14 8 V 6 C 14 5, 22 5, 22 6 V 8 Z" fill="#bb66ff" stroke="#080820" stroke-width="0.5"/>
+  <line x1="14" y1="15" x2="20" y2="15" stroke="#bb66ff" stroke-width="0.8" opacity="0.6"/>
+  <line x1="14" y1="18" x2="19" y2="18" stroke="#bb66ff" stroke-width="0.8" opacity="0.6"/>
+  <line x1="25.5" y1="25.5" x2="31.5" y2="31.5" stroke="#bb66ff" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="22" cy="22" r="5" fill="none" stroke="#bb66ff" stroke-width="1.8"/>
+</svg>`,
+  'card-type-boss': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="24" height="24">
+  <defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4466"/><stop offset="100%" stop-color="#ffcc44"/></linearGradient></defs>
+  <rect width="36" height="36" fill="#080820" rx="6" stroke="url(#bg)" stroke-width="1" opacity="0.4"/>
+  <path d="M 11 16 C 11 9.5, 25 9.5, 25 16 C 25 19, 23 20, 22.5 22.5 H 13.5 C 13 20, 11 19, 11 16 Z" fill="url(#bg)"/>
+  <path d="M 13.5 13.5 L 17 15 L 16 16.5 L 13.5 15.5 Z" fill="#080820"/>
+  <path d="M 22.5 13.5 L 19 15 L 20 16.5 L 22.5 15.5 Z" fill="#080820"/>
+  <polygon points="18,17.5 16.5,19.5 19.5,19.5" fill="#080820"/>
+  <line x1="14.5" y1="21" x2="21.5" y2="21" stroke="#080820" stroke-width="1"/>
+  <polygon points="16.5,22.5 19.5,22.5 18,25 20,31.5 18,33.5 16,31.5" fill="url(#bg)" stroke="#080820" stroke-width="0.5"/>
+</svg>`,
+  'card-type-flavor': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="24" height="24">
+  <rect width="36" height="36" fill="#080820" rx="6" stroke="#00ccff" stroke-width="1" opacity="0.3"/>
+  <path d="M 8 7 L 18 18.5 L 28 7" fill="none" stroke="#00ccff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="18" y1="18.5" x2="18" y2="28" stroke="#00ccff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="13" y1="28" x2="23" y2="28" stroke="#00ccff" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="17.5" cy="11" r="2.5" fill="#080820" stroke="#00ccff" stroke-width="1.2"/>
+  <ellipse cx="17.5" cy="11" rx="5" ry="1.5" fill="none" stroke="#00ccff" stroke-width="1" transform="rotate(-20 17.5 11)"/>
+</svg>`,
+
+  // Help icon
+  'icon-help': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
+  <path d="M 6 5 H 18 A 3 3 0 0 1 21 8 V 13 A 3 3 0 0 1 18 16 H 11.5 L 7.5 19.5 V 16 A 3 3 0 0 1 3 13 V 8 A 3 3 0 0 1 6 5 Z" fill="none" stroke="#00ccff" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M 9.5 9 C 9.5 7.5, 14.5 7.5, 14.5 9 C 14.5 10.2, 12 10.8, 12 12.2" fill="none" stroke="#00ccff" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="12" cy="14.2" r="0.9" fill="#00ccff"/>
+</svg>`,
+
+  // Settings icon
+  'icon-settings': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
+  <defs><polygon id="gt" points="10.8,1.5 13.2,1.5 14.1,4.5 9.9,4.5"/></defs>
+  <g fill="#6688aa" fill-rule="evenodd">
+    <path d="M 12 4.2 A 7.8 7.8 0 1 0 12 19.8 A 7.8 7.8 0 1 0 12 4.2 Z M 12 8.8 A 3.2 3.2 0 1 1 12 15.2 A 3.2 3.2 0 1 1 12 8.8 Z"/>
+    <use href="#gt" transform="rotate(0 12 12)"/><use href="#gt" transform="rotate(60 12 12)"/>
+    <use href="#gt" transform="rotate(120 12 12)"/><use href="#gt" transform="rotate(180 12 12)"/>
+    <use href="#gt" transform="rotate(240 12 12)"/><use href="#gt" transform="rotate(300 12 12)"/>
+  </g>
+</svg>`,
+
+  // Victory banner
+  'banner-victory': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 60" width="100%" height="54">
+  <defs><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#001100"/><stop offset="100%" stop-color="#002b00"/></linearGradient></defs>
+  <rect width="600" height="60" fill="url(#gg)"/>
+  <line x1="0" y1="0.75" x2="600" y2="0.75" stroke="#00e87a" stroke-width="1.5" opacity="0.9"/>
+  <line x1="0" y1="59.25" x2="600" y2="59.25" stroke="#00e87a" stroke-width="1.5" opacity="0.9"/>
+  <polygon points="70,18 71.5,19.5 70,21 68.5,19.5" fill="#ffcc44" opacity="0.8"/>
+  <circle cx="85" cy="32" r="1.5" fill="#ffcc44" opacity="0.5"/>
+  <text x="300" y="37" font-family="'Courier New',monospace" font-weight="900" font-size="17" fill="#ffcc44" letter-spacing="2" text-anchor="middle">🚀 IPO SUCCESSFUL — MUTUAL OF ANDROMEDA</text>
+  <polygon points="530,18 531.5,19.5 530,21 528.5,19.5" fill="#ffcc44" opacity="0.8"/>
+  <circle cx="515" cy="32" r="1.5" fill="#ffcc44" opacity="0.5"/>
+</svg>`,
+
+  // Industry Cred (IC) icon
+  'icon-industry-cred': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="20" height="20">
+  <rect width="36" height="36" fill="#080820" rx="6" stroke="#ffcc44" stroke-width="1" opacity="0.3"/>
+  <circle cx="18" cy="18" r="11" fill="#080820" fill-opacity="0.3" stroke="#ffcc44" stroke-width="1.8"/>
+  <polygon points="18,8.5 20.5,15.5 27.5,18 20.5,20.5 18,27.5 15.5,20.5 8.5,18 15.5,15.5" fill="#ffcc44" fill-opacity="0.2" stroke="#ffcc44" stroke-width="1.2" stroke-linejoin="round"/>
+  <text x="18" y="21.5" font-family="'Courier New',monospace" font-weight="900" font-size="10" fill="#ffcc44" text-anchor="middle" letter-spacing="0.5">IC</text>
+</svg>`,
+
+  // Reinsurance icon
+  'icon-reinsurance': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32">
+  <rect width="48" height="48" fill="#080820" rx="8" stroke="#ffcc44" stroke-width="1" opacity="0.3"/>
+  <path d="M 24 22 L 24 37 C 24 39, 21 39, 21 37" fill="none" stroke="#ffcc44" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="24" cy="30" r="6" fill="#080820" stroke="#ffcc44" stroke-width="1.5"/>
+  <path d="M 14 30.5 C 16.5 33.5, 31.5 33.5, 34 30.5" fill="none" stroke="#ffcc44" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 9 23 C 9 11, 39 11, 39 23 C 34 21, 29 21, 24 23 C 19 21, 14 21, 9 23 Z" fill="#ffcc44" fill-opacity="0.15" stroke="#ffcc44" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="24" y1="8" x2="24" y2="11" stroke="#ffcc44" stroke-width="2" stroke-linecap="round"/>
+</svg>`,
+
+  // Catastrophe alert banner
+  'banner-catastrophe': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 40" width="100%" height="36">
+  <defs><pattern id="haz" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+  <rect width="10" height="20" fill="#1a0000"/><rect x="10" width="10" height="20" fill="#260000"/>
+  </pattern></defs>
+  <rect width="600" height="40" fill="url(#haz)"/>
+  <line x1="0" y1="0.5" x2="600" y2="0.5" stroke="#ff4466" stroke-width="1.5" opacity="0.9"/>
+  <line x1="0" y1="39.5" x2="600" y2="39.5" stroke="#ff4466" stroke-width="1.5" opacity="0.9"/>
+  <g transform="translate(100,4)"><polygon points="16,4 28,26 4,26" fill="#ff4466"/><rect x="15" y="10" width="2" height="8" fill="#1a0000" rx="0.5"/><circle cx="16" cy="22" r="1.5" fill="#1a0000"/></g>
+  <text x="300" y="26" font-family="'Courier New',monospace" font-weight="900" font-size="16" fill="#ff4466" letter-spacing="4" text-anchor="middle">⚠ CATASTROPHE ALERT ⚠</text>
+  <g transform="translate(468,4)"><polygon points="16,4 28,26 4,26" fill="#ff4466"/><rect x="15" y="10" width="2" height="8" fill="#1a0000" rx="0.5"/><circle cx="16" cy="22" r="1.5" fill="#1a0000"/></g>
+</svg>`,
+
+  // Line icons (originals unchanged)
+  'icon-colonization': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32">
+  <rect width="48" height="48" fill="#080820" rx="8" stroke="#ffaa00" stroke-width="1" opacity="0.3"/>
+  <circle cx="24" cy="31" r="11" fill="none" stroke="#ffaa00" stroke-width="2"/>
+  <path d="M 13.5 32.5 C 16 35.5, 32 35.5, 34.5 32.5" fill="none" stroke="#ffaa00" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="15" y1="20.5" x2="33" y2="20.5" stroke="#ffaa00" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 16 20.5 A 8 8 0 0 1 32 20.5 Z" fill="#ffaa00" fill-opacity="0.15" stroke="#ffaa00" stroke-width="2"/>
+  <line x1="24" y1="12.5" x2="24" y2="20.5" stroke="#ffaa00" stroke-width="0.75" opacity="0.6"/>
+  <rect x="22" y="16" width="4" height="4.5" fill="#ffaa00"/>
+</svg>`,
+  'icon-orbital': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32">
+  <rect width="48" height="48" fill="#080820" rx="8" stroke="#00ccff" stroke-width="1" opacity="0.3"/>
+  <line x1="24" y1="8" x2="24" y2="40" stroke="#00ccff" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="24" cy="24" rx="13" ry="6" fill="#080820" stroke="#00ccff" stroke-width="2.5"/>
+  <ellipse cx="24" cy="24" rx="8" ry="3" fill="#080820" stroke="#00ccff" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="24" cy="24" r="3.5" fill="#00ccff" stroke="#080820" stroke-width="0.75"/>
+  <g transform="translate(14,5)"><rect width="20" height="6" rx="1" fill="#080820" stroke="#00ccff" stroke-width="1.5"/>
+  <line x1="10" y1="0" x2="10" y2="6" stroke="#00ccff" stroke-width="1"/></g>
+  <g transform="translate(14,37)"><rect width="20" height="6" rx="1" fill="#080820" stroke="#00ccff" stroke-width="1.5"/>
+  <line x1="10" y1="0" x2="10" y2="6" stroke="#00ccff" stroke-width="1"/></g>
+</svg>`,
+  'icon-shipping': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32">
+  <rect width="48" height="48" fill="#080820" rx="8" stroke="#00e87a" stroke-width="1" opacity="0.3"/>
+  <rect x="13" y="15" width="8" height="18" rx="1.5" fill="#080820" stroke="#00e87a" stroke-width="2"/>
+  <rect x="21" y="15" width="8" height="18" rx="1.5" fill="#080820" stroke="#00e87a" stroke-width="2"/>
+  <rect x="29" y="20" width="3" height="8" fill="#00e87a"/>
+  <path d="M 32 17 L 39 20 C 41 21, 41 27, 39 28 L 32 31 Z" fill="#080820" stroke="#00e87a" stroke-width="2"/>
+  <path d="M 35 19 L 38 21 L 38 23 L 35 23 Z" fill="#00e87a"/>
+  <path d="M 10 24 L 2 24" stroke="#00e87a" stroke-width="2.5" stroke-linecap="round"/>
+</svg>`,
+  'icon-specialty': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="32" height="32">
+  <rect width="48" height="48" fill="#080820" rx="8" stroke="#bb66ff" stroke-width="1" opacity="0.3"/>
+  <polygon points="20,17 12,43 36,43 28,17" fill="#bb66ff" fill-opacity="0.12" stroke="#bb66ff" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.75"/>
+  <path d="M 22 25 C 22 22.5, 26 22.5, 26 25 C 26 27, 24 27.5, 24 29.5" fill="none" stroke="#bb66ff" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="24" cy="33.5" r="1.5" fill="#bb66ff"/>
+  <path d="M 18.5 13.5 C 18.5 9, 29.5 9, 29.5 13.5 Z" fill="#bb66ff" fill-opacity="0.25" stroke="#bb66ff" stroke-width="1.5"/>
+  <ellipse cx="24" cy="15" rx="13.5" ry="3.5" fill="#080820" stroke="#bb66ff" stroke-width="2"/>
+  <circle cx="24" cy="12.5" r="1.5" fill="#bb66ff"/>
+</svg>`,
+};
+
+const STARFIELD_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <rect width="400" height="300" fill="#03030f"/>
+  <ellipse cx="120" cy="180" rx="70" ry="35" fill="#00ccff" opacity="0.025" transform="rotate(-20 120 180)"/>
+  <ellipse cx="280" cy="90" rx="85" ry="40" fill="#bb66ff" opacity="0.02" transform="rotate(15 280 90)"/>
+  <g fill="#ffffff">
+    <circle cx="15" cy="45" r="0.4" opacity="0.4"/><circle cx="35" cy="15" r="0.4" opacity="0.3"/>
+    <circle cx="75" cy="85" r="0.4" opacity="0.5"/><circle cx="95" cy="250" r="0.4" opacity="0.4"/>
+    <circle cx="115" cy="35" r="0.4" opacity="0.3"/><circle cx="130" cy="190" r="0.4" opacity="0.5"/>
+    <circle cx="165" cy="275" r="0.4" opacity="0.4"/><circle cx="180" cy="15" r="0.4" opacity="0.3"/>
+    <circle cx="215" cy="95" r="0.4" opacity="0.5"/><circle cx="235" cy="225" r="0.4" opacity="0.4"/>
+    <circle cx="255" cy="55" r="0.4" opacity="0.3"/><circle cx="285" cy="175" r="0.4" opacity="0.5"/>
+    <circle cx="310" cy="285" r="0.4" opacity="0.4"/><circle cx="325" cy="115" r="0.4" opacity="0.3"/>
+    <circle cx="345" cy="45" r="0.4" opacity="0.5"/><circle cx="375" cy="215" r="0.4" opacity="0.4"/>
+    <circle cx="25" cy="115" r="0.7" opacity="0.6"/><circle cx="55" cy="70" r="0.7" opacity="0.4"/>
+    <circle cx="105" cy="160" r="0.7" opacity="0.6"/><circle cx="175" cy="135" r="0.7" opacity="0.7"/>
+    <circle cx="220" cy="45" r="0.7" opacity="0.6"/><circle cx="245" cy="165" r="0.7" opacity="0.5"/>
+    <circle cx="270" cy="275" r="0.7" opacity="0.7"/><circle cx="305" cy="65" r="0.7" opacity="0.4"/>
+    <circle cx="335" cy="235" r="0.7" opacity="0.6"/><circle cx="360" cy="85" r="0.7" opacity="0.5"/>
+    <circle cx="45" cy="30" r="1.0" opacity="0.7"/><circle cx="85" cy="115" r="1.0" opacity="0.6"/>
+    <circle cx="110" cy="215" r="1.0" opacity="0.8"/><circle cx="160" cy="80" r="1.0" opacity="0.7"/>
+    <circle cx="195" cy="255" r="1.0" opacity="0.6"/><circle cx="230" cy="110" r="1.0" opacity="0.8"/>
+    <circle cx="290" cy="35" r="1.0" opacity="0.7"/><circle cx="320" cy="205" r="1.0" opacity="0.6"/>
+    <circle cx="60" cy="150" r="1.5" opacity="0.9"/><circle cx="200" cy="70" r="1.5" opacity="0.95"/>
+    <circle cx="300" cy="120" r="1.5" opacity="0.9"/><circle cx="100" cy="55" r="1.5" opacity="0.9"/>
+  </g>
+  <g fill="#aaddff">
+    <circle cx="30" cy="75" r="0.8" opacity="0.8"/><circle cx="70" cy="25" r="1.2" opacity="0.9"/>
+    <circle cx="240" cy="15" r="1.4" opacity="0.9"/><circle cx="330" cy="70" r="1.1" opacity="0.8"/>
+    <circle cx="185" cy="175" r="0.7" opacity="0.6"/><circle cx="395" cy="175" r="1.0" opacity="0.85"/>
+  </g>
+</svg>`;
+
+/* ============================================================
+   SEEDED RNG — Mulberry32
+   ============================================================ */
+function createRNG(seed) {
+  let s = (seed >>> 0) || 1337;
+  const r = {
+    next() {
+      s += 0x6D2B79F5;
+      let z = Math.imul(s ^ (s >>> 15), s | 1);
+      z ^= z + Math.imul(z ^ (z >>> 7), z | 61);
+      return ((z ^ (z >>> 14)) >>> 0) / 4294967296;
+    },
+    nextInt(min, max) { return Math.floor(r.next() * (max - min + 1)) + min; },
+    pick(arr)         { return arr[r.nextInt(0, arr.length - 1)]; },
+    roll(prob)        { return r.next() < prob; },
+    getState()        { return s; },
+    setState(v)       { s = v >>> 0; },
+  };
+  return r;
+}
+
+/* ============================================================
+   STATE SCHEMA
+   ============================================================ */
+function initialState() {
+  const seed = (Math.random() * 0x7FFFFFFF) | 0;
+  return {
+    version:    GAME_VERSION,
+    seed,
+    rngState:   seed,
+
+    // Turn
+    turn:       1,
+    maxTurns:   MAX_TURNS,
+    phase:      'portfolio',
+
+    // Core stats
+    capital:    BALANCE.startCapital,
+    reputation: BALANCE.startReputation,
+    exposure:   0,     // total max payout of active policies
+    heat:       0,     // 0–100
+
+    // Derived
+    solvencyRating: 'A',
+
+    // Collections
+    policies:   [],
+    staff:      [],
+
+    // Client offers (refreshed each portfolio phase)
+    pendingOffers: [],
+
+    // Events
+    activeEvents:   [],
+    pendingCards:   [],
+    resolvedCards:  [],
+
+    // Economy
+    lastIncome:   0,
+    lastExpenses: 0,
+    lastNet:      0,
+    lifetimeIncome:   0,
+    lifetimeExpenses: 0,
+    resolutionDetail: [],  // per-policy rows for the resolution UI
+    lastExpiredIds:   [],  // archetypes that expired last turn (for renewal priority)
+
+    // M5: Reinsurance & catastrophes
+    reinsurancePurchased: false,  // true if player bought reinsurance this turn
+    reinsuranceCap:       BALANCE.reinsuranceCap,
+    activeCrisis:         null,   // {cardId, turnsLeft, data} if a multi-turn crisis is running
+
+    // M11: Daily challenge
+    isDaily:              false,  // true when playing the daily seed
+
+    // M12: Per-run achievement trackers
+    catSurvivedNoReins:   false,  // true after surviving a cat without reinsurance
+    specialtyResolved:    0,      // count of specialty cards resolved this run
+
+    // Log
+    log: [],
+
+    // Flags
+    flags: {},
+
+    // Terminal
+    isGameOver: false,
+    isVictory:  false,
+    gameOverReason: '',
+  };
+}
+
+/* ============================================================
+   DERIVED CALCULATIONS
+   ============================================================ */
+function calcSolvency(capital, exposure) {
+  if (exposure === 0) return capital > 0 ? 'AAA' : 'D';
+  const r = capital / exposure;
+  if (r >= 10)  return 'AAA';
+  if (r >= 5)   return 'AA';
+  if (r >= 3)   return 'A';
+  if (r >= 2)   return 'BBB';
+  if (r >= 1)   return 'BB';
+  if (r >= 0.5) return 'B';
+  if (r >= 0.1) return 'CCC';
+  return 'D';
+}
+
+function calcTotalPremium(policies) {
+  return policies.reduce((s, p) => s + (p.premium || 0), 0);
+}
+
+function calcTotalExposure(policies) {
+  return policies.reduce((s, p) => s + (p.maxPayout || 0), 0);
+}
+
+function solvencyClass(rating) {
+  if (['AAA','AA'].includes(rating))    return 'sol-green';
+  if (['A','BBB'].includes(rating))     return 'sol-amber';
+  if (['BB','B'].includes(rating))      return 'sol-orange';
+  return 'sol-red';
+}
+
+/* ============================================================
+   STATE MANAGEMENT
+   ============================================================ */
+let game = initialState();
+let rng  = createRNG(game.seed);
+
+// Tracks slider positions between renders without polluting game state
+const _sliderMult = {};  // offerId → multiplier (default 1.0)
+
+function setState(patch) {
+  game = { ...game, ...patch };
+
+  // Clamp
+  game.capital    = Math.max(0, game.capital);
+  game.reputation = Math.max(0, Math.min(100, game.reputation));
+  game.heat       = Math.max(0, Math.min(100, game.heat));
+
+  // Derive
+  game.exposure       = calcTotalExposure(game.policies);
+  game.solvencyRating = calcSolvency(game.capital, game.exposure);
+  game.rngState       = rng.getState();
+
+  saveGame();
+  checkAchievements();
+  render();
+}
+
+/* ============================================================
+   LOGGING
+   ============================================================ */
+function pushLog(type, text) {
+  const entry = { type, text, turn: game.turn };
+  game.log = [entry, ...game.log].slice(0, 60);
+}
+
+function addLog(type, text) {
+  pushLog(type, text);
+  setState({});  // trigger save + render
+}
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(game)); }
+  catch (e) { /* storage full or private mode */ }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (saved.version !== GAME_VERSION) return false;
+    game = saved;
+    rng  = createRNG(game.seed);
+    rng.setState(game.rngState);
+    return true;
+  } catch (e) { return false; }
+}
+
+function newGame() {
+  _icEarned = false;
+  game = initialState();
+  rng  = createRNG(game.seed);
+  applyStartBonuses();  // apply meta-unlock bonuses
+  game.pendingOffers = pickOffers();
+  pushLog('system', '🏢 Mutual of Andromeda is open for business.');
+  pushLog('info',   `🌌 Fiscal year ${START_YEAR} begins. What could possibly go wrong?`);
+  setState({});
+}
+
+/* ============================================================
+   TURN / PHASE LOGIC
+   ============================================================ */
+function turnToDate(turn) {
+  const year    = START_YEAR + Math.floor((turn - 1) / 4);
+  const quarter = ((turn - 1) % 4) + 1;
+  return `Q${quarter} ${year}`;
+}
+
+function drawCards() {
+  const eligible = CARD_DECK.filter(c => {
+    if (c.minTurn && game.turn < c.minTurn) return false;
+    if (c.maxTurn && game.turn > c.maxTurn) return false;
+    const cond = c.conditions || {};
+    if (cond.requiresLine && !game.policies.some(p => p.line === cond.requiresLine)) return false;
+    if (cond.minHeat !== undefined && game.heat < cond.minHeat) return false;
+    return true;
+  });
+
+  // Weighted random draw, no duplicate ids
+  const count  = rng.nextInt(1, 3);
+  const drawn  = [];
+  const taken  = new Set();
+  const weights = eligible.map(c => c.weight || 5);
+  const total = weights.reduce((s, w) => s + w, 0);
+
+  for (let attempt = 0; attempt < count * 5 && drawn.length < count; attempt++) {
+    let r = rng.next() * total;
+    for (let i = 0; i < eligible.length; i++) {
+      r -= weights[i];
+      if (r <= 0 && !taken.has(eligible[i].id)) {
+        taken.add(eligible[i].id);
+        drawn.push(eligible[i]);
+        break;
+      }
+    }
+  }
+  return drawn;
+}
+
+function resolveChoice(cardId, choiceIdx) {
+  const card = (game.pendingCards || []).find(c => c.id === cardId);
+  if (!card) return;
+  const choice = card.choices[choiceIdx];
+  const fx = choice.effects || {};
+
+  const patch = {
+    capital:           game.capital    + (fx.cash      || 0),
+    reputation:        game.reputation + (fx.rep       || 0),
+    heat:              game.heat       + (fx.heat      || 0),
+    pendingCards:      (game.pendingCards || []).filter(c => c.id !== cardId),
+    resolvedCards:     [...game.resolvedCards, { cardId, title:card.title, choice:choice.label, result:choice.result }],
+    specialtyResolved: (game.specialtyResolved || 0) + (card.line === 'specialty' ? 1 : 0),
+  };
+  if (fx.flag) patch.flags = { ...game.flags, [fx.flag]: true };
+
+  pushLog(
+    card.type === 'opportunity' ? 'income' : card.type === 'flavor' ? 'info' : 'expense',
+    `${card.title}: ${choice.label}`
+  );
+  setState(patch);
+}
+
+function pickOffers() {
+  const activeIds  = new Set(game.policies.map(p => p.archetypeId));
+  const renewalIds = new Set(game.lastExpiredIds || []);
+  const pool       = CLIENT_ARCHETYPES.filter(a => !activeIds.has(a.id));
+
+  const renewals = pool.filter(a =>  renewalIds.has(a.id));
+  const fresh    = pool.filter(a => !renewalIds.has(a.id));
+
+  for (let i = fresh.length - 1; i > 0; i--) {
+    const j = rng.nextInt(0, i);
+    [fresh[i], fresh[j]] = [fresh[j], fresh[i]];
+  }
+
+  // M9: Low reputation reduces available offers
+  const repPenalty = game.reputation < BALANCE.repLowThreshold ? -1 : 0;
+  const maxOffers  = Math.max(1, (hasStaff('underwriting') || hasUnlock('connected') ? 4 : 3) + repPenalty);
+  return [...renewals, ...fresh]
+    .slice(0, Math.min(maxOffers, pool.length))
+    .map(a => ({ ...a, isRenewal: renewalIds.has(a.id) }));
+}
+
+function advancePhase() {
+  if (game.isGameOver) return;
+  const idx = PHASES.indexOf(game.phase);
+
+  // Block advancing from events while cards are unresolved
+  if (game.phase === 'events' && (game.pendingCards || []).length > 0) return;
+
+  if (idx < PHASES.length - 1) {
+    const next = PHASES[idx + 1];
+    if (next === 'events') {
+      const drawn = drawCards();
+      setState({ phase: 'events', pendingCards: drawn, resolvedCards: [] });
+    } else if (next === 'resolution') {
+      setState({ phase: 'resolution' });
+      runResolution();
+    } else {
+      setState({ phase: next });
+    }
+  } else {
+    endTurn();
+  }
+}
+
+function difficultyScale(turn) {
+  const t = Math.max(1, Math.min(turn, BALANCE.diffByTurn.length - 1));
+  return BALANCE.diffByTurn[t] || 1.0;
+}
+
+function hasStaff(id) {
+  return (game.staff || []).includes(id);
+}
+
+function staffUpkeep() {
+  return (game.staff || []).reduce((total, id) => {
+    const dept = STAFF_DEPTS.find(d => d.id === id);
+    return total + (dept ? dept.upkeep : 0);
+  }, 0);
+}
+
+function runResolution() {
+  let income = 0, expenses = 0;
+  const survivingPolicies = [];
+  const expiredIds        = [];
+  const detail            = [];
+  const claimsReduction   = hasStaff('claims') ? 0.80 : 1.0;
+  const diff              = difficultyScale(game.turn);  // M9: turn-based escalation
+
+  for (const p of game.policies) {
+    income += p.premium;
+    let claimAmt = 0;
+    let hadClaim = false;
+
+    // Apply difficulty scaling to claim probability
+    const scaledChance = Math.min(0.90, p.claimChance * diff);
+    if (rng.roll(scaledChance)) {
+      claimAmt = Math.round(rng.nextInt(p.claimRange[0], p.claimRange[1]) * claimsReduction);
+      expenses += claimAmt;
+      hadClaim = true;
+    }
+
+    const remaining = p.termsRemaining - 1;
+    if (remaining > 0) {
+      survivingPolicies.push({ ...p, termsRemaining: remaining });
+    } else {
+      expiredIds.push(p.archetypeId);
+    }
+
+    detail.push({
+      name:    p.name,
+      premium: p.premium,
+      hadClaim,
+      claimAmt,
+      expired: remaining <= 0,
+    });
+  }
+
+  // Staff upkeep deducted as an expense
+  const upkeep = staffUpkeep();
+  expenses += upkeep;
+
+  // PR department: +5 rep per quarter
+  let repChange = hasStaff('pr') ? 5 : 0;
+
+  // M9: Low reputation auto-accumulates heat
+  const repAutoHeat = game.reputation < BALANCE.repCritThreshold ? 5 : 0;
+  if (repAutoHeat > 0) pushLog('warn', `⚠ Critical reputation — regulatory heat building (+${repAutoHeat})`);
+
+  // M9: High heat — random policy cancellation
+  let cancelledPolicy = null;
+  if (game.heat >= BALANCE.heatPolicyCancelThreshold && survivingPolicies.length > 0) {
+    const cancelIdx = rng.nextInt(0, survivingPolicies.length - 1);
+    cancelledPolicy = survivingPolicies.splice(cancelIdx, 1)[0];
+    pushLog('warn', `🔴 Heat ${game.heat} — "${cancelledPolicy.name}" cancelled by client (regulatory pressure)`);
+  }
+
+  // M5+M9: Catastrophe roll — scales with exposure AND difficulty
+  const diffMult = difficultyScale(game.turn);
+  let catCost    = 0;
+  let catMessage = '';
+  if (game.exposure > 0) {
+    const catChance = Math.min(BALANCE.catMaxChance,
+      (game.exposure / BALANCE.catExposureScale) * diffMult * 0.15);
+    if (rng.roll(catChance)) {
+      const rawCat = Math.round(game.exposure * rng.next() * BALANCE.catPayoutFrac * diffMult);
+      if (game.reinsurancePurchased) {
+        catCost   = Math.min(rawCat, game.reinsuranceCap);
+        catMessage = `☄ Catastrophe! Reinsurance capped at ¢${fmt(catCost)} (raw ¢${fmt(rawCat)})`;
+      } else {
+        catCost   = rawCat;
+        catMessage = `☄ Catastrophe! Uninsured loss: ¢${fmt(catCost)}`;
+        game.catSurvivedNoReins = true;  // M12: achievement tracker
+      }
+      expenses += catCost;
+    }
+  }
+  if (catMessage) pushLog('expense', catMessage);
+
+  const net = income - expenses;
+
+  if (income > 0) pushLog('income', `💰 Premiums: +¢${fmt(income)}`);
+  if (expenses > 0) pushLog('expense', `💸 Claims + upkeep: -¢${fmt(expenses)}`);
+  pushLog(net >= 0 ? 'income' : 'expense',
+    `${net >= 0 ? '📈' : '📉'} Net: ${net >= 0 ? '+' : '-'}¢${fmt(Math.abs(net))}`);
+
+  setState({
+    capital:              game.capital + net,
+    reputation:           Math.max(0, game.reputation + repChange),
+    heat:                 Math.min(100, game.heat + repAutoHeat),
+    policies:             survivingPolicies,
+    lastIncome:           income,
+    lastExpenses:         expenses,
+    lastNet:              net,
+    lifetimeIncome:       game.lifetimeIncome + income,
+    lifetimeExpenses:     game.lifetimeExpenses + expenses,
+    resolutionDetail:     [
+      ...detail,
+      ...(catCost > 0 ? [{ name:'Catastrophe Loss', premium:0, hadClaim:true, claimAmt:catCost, expired:false, isCatastrophe:true }] : []),
+      ...(cancelledPolicy ? [{ name:`${cancelledPolicy.name} [CANCELLED]`, premium:0, hadClaim:false, claimAmt:0, expired:true, isCancelled:true }] : []),
+    ],
+    lastExpiredIds:       expiredIds,
+    reinsurancePurchased: false,   // resets each turn
+  });
+}
+
+function endTurn() {
+  const next = game.turn + 1;
+
+  // Lose conditions
+  if (game.capital <= 0) {
+    game = { ...game, isGameOver:true, isVictory:false, gameOverReason:'bankrupt' };
+    saveRunHistory();
+    setState({});
+    return;
+  }
+  if (game.reputation <= 0) {
+    game = { ...game, isGameOver:true, isVictory:false, gameOverReason:'license' };
+    saveRunHistory();
+    setState({});
+    return;
+  }
+
+  // Win condition — survive all turns AND meet capital threshold
+  if (next > game.maxTurns) {
+    const fullIPO = game.capital >= BALANCE.winCapital;
+    game = { ...game, isGameOver:true, isVictory:true, gameOverReason: fullIPO ? 'ipo' : 'ipo-narrow' };
+    saveRunHistory();
+    setState({});
+    return;
+  }
+
+  // Pick fresh offers for the new portfolio phase
+  const newTurnState = { turn: next, phase: 'portfolio', resolvedCards: [] };
+  game = { ...game, ...newTurnState };  // temporarily advance turn so pickOffers sees right active policies
+  newTurnState.pendingOffers = pickOffers();
+
+  pushLog('system', `📅 ${turnToDate(next)} — New quarter begins.`);
+  setState(newTurnState);
+}
+
+/* ============================================================
+   FORMATTING HELPERS
+   ============================================================ */
+function fmt(n) { return Math.round(Math.abs(n)).toLocaleString(); }
+function pct(n) { return `${Math.round(n)}%`; }
+
+function moneyColor(n) {
+  if (n > 5000)  return 'var(--green)';
+  if (n > 2000)  return 'var(--amber)';
+  return 'var(--red)';
+}
+function repColor(r) {
+  if (r >= 60) return 'var(--cyan)';
+  if (r >= 30) return 'var(--amber)';
+  return 'var(--red)';
+}
+function heatColor(h) {
+  if (h < 30) return 'var(--green)';
+  if (h < 65) return 'var(--amber)';
+  return 'var(--red)';
+}
+function netColor(n) { return n >= 0 ? 'var(--green)' : 'var(--red)'; }
+
+/* ============================================================
+   RENDER — HUD
+   ============================================================ */
+function renderHUD() {
+  const { capital, reputation, heat, solvencyRating, turn, maxTurns } = game;
+  const progress = ((turn - 1) / maxTurns) * 100;
+
+  document.getElementById('hud').innerHTML = `
+    <div class="hud-logo" style="flex-shrink:0;line-height:0">
+      ${SVG_LOGO}
+    </div>
+
+    <div class="hud-sep"></div>
+
+    <div class="hud-period">
+      <span class="hud-period-label">Fiscal Period</span>
+      <span class="hud-period-val">${turnToDate(turn)}</span>
+    </div>
+
+    <div class="hud-progress">
+      <span class="hud-prog-label">Run (${turn}/${maxTurns})</span>
+      <div class="hud-prog-track">
+        <div class="hud-prog-fill" style="width:${progress}%"></div>
+      </div>
+    </div>
+
+    <div class="hud-sep"></div>
+
+    <div class="hud-stats">
+
+      <div class="stat-chip" style="min-width:90px">
+        <span class="stat-chip-label">💰 Capital</span>
+        <span class="stat-chip-val" style="color:${moneyColor(capital)}">¢${fmt(capital)}</span>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
+          <div style="width:60px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${Math.min(100, Math.round(capital/BALANCE.winCapital*100))}%;background:${moneyColor(capital)};border-radius:2px;transition:width 0.4s"></div>
+          </div>
+          <span style="font-size:9px;color:var(--text-dim)">IPO</span>
+        </div>
+      </div>
+
+      <div class="bar-stat">
+        <span class="bar-stat-label">⭐ Reputation</span>
+        <div class="bar-track bar-rep-track">
+          <div class="bar-fill" style="width:${reputation}%;background:${repColor(reputation)}"></div>
+        </div>
+        <span class="bar-stat-num" style="color:${repColor(reputation)}">${reputation}/100</span>
+      </div>
+
+      <div class="stat-chip">
+        <span class="stat-chip-label">⚠️ Exposure</span>
+        <span class="stat-chip-val" style="color:var(--amber)">¢${fmt(game.exposure)}</span>
+      </div>
+
+      <div class="bar-stat">
+        <span class="bar-stat-label">🔥 Heat</span>
+        <div class="bar-track bar-heat-track">
+          <div class="bar-fill" style="width:${heat}%;background:${heatColor(heat)}"></div>
+        </div>
+        <span class="bar-stat-num" style="color:${heatColor(heat)}">${heat}/100</span>
+      </div>
+
+      <div class="hud-sep"></div>
+      <div class="solvency-badge ${solvencyClass(solvencyRating)}">${solvencyRating}</div>
+
+    </div>
+
+    <div class="hud-btn-row">
+      <div class="ic-badge">${SVG_ICONS['icon-industry-cred']} ${meta.industrycred}</div>
+      ${game.isDaily ? `<div class="daily-chip">📅 Daily</div>` : ''}
+      <button class="btn btn-ghost" data-action="show-tutorial" title="Help / Tutorial" style="padding:5px 8px;line-height:0">${SVG_ICONS['icon-help']}</button>
+      <button class="btn btn-ghost" data-action="open-settings" title="Settings" style="padding:5px 8px;line-height:0">${SVG_ICONS['icon-settings']}</button>
+      <button class="btn btn-ghost" data-action="new-game">↺ New Run</button>
+    </div>
+  `;
+}
+
+/* ============================================================
+   RENDER — PORTFOLIO SIDEBAR
+   ============================================================ */
+function renderPortfolio() {
+  const { policies, log } = game;
+  const totalPremium  = calcTotalPremium(policies);
+
+  // Policies
+  let policyHtml = '';
+  if (policies.length === 0) {
+    policyHtml = `<div class="empty-state">
+      📭 No active policies<br>
+      <small>Sign clients during the Portfolio phase<br>to begin collecting premiums.</small>
+    </div>`;
+  } else {
+    policyHtml = policies.map(p => {
+      const m    = LINE_META[p.line] || {};
+      const svg  = SVG_ICONS[m.svgFile] || '';
+      const pips = Array.from({ length: p.termsTotal || p.termsRemaining },
+        (_, i) => `<div class="term-pip ${i < p.termsRemaining ? 'active' : ''}"></div>`
+      ).join('');
+      return `<div class="policy-card" style="border-left-color:${m.color}">
+        <div class="policy-card-line" style="color:${m.color};display:flex;align-items:center;gap:6px">
+          ${svg}<span>${m.label}</span>
+        </div>
+        <div class="policy-card-name">${p.name}</div>
+        <div class="policy-card-stats">
+          <span style="color:var(--green)">¢${fmt(p.premium)}/qtr</span>
+          <span>Max: ¢${fmt(p.maxPayout)}</span>
+        </div>
+        <div class="terms-pips" title="${p.termsRemaining} quarter${p.termsRemaining !== 1 ? 's' : ''} remaining">${pips}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Log (most recent 10)
+  const logHtml = log.slice(0, 10).map(e =>
+    `<div class="log-entry log-${e.type}">${e.text}</div>`
+  ).join('') || '<div class="log-entry">— no entries yet —</div>';
+
+  document.getElementById('portfolio-panel').innerHTML = `
+    <div class="sidebar-section">
+      <div class="section-title">📁 Portfolio</div>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <span class="stat-box-label">Policies</span>
+          <span class="stat-box-val">${policies.length}</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-box-label">Qtr Premium</span>
+          <span class="stat-box-val" style="color:var(--green)">¢${fmt(totalPremium)}</span>
+        </div>
+      </div>
+      ${policyHtml}
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-title">📋 Run Log</div>
+      ${logHtml}
+    </div>
+  `;
+}
+
+/* ============================================================
+   RENDER — PHASE PANEL
+   ============================================================ */
+function renderPhasePanel() {
+  const { phase, turn, maxTurns, lastIncome, lastExpenses, lastNet,
+          capital, reputation, lifetimeIncome, lifetimeExpenses } = game;
+  const meta = PHASE_META[phase];
+  const date = turnToDate(turn);
+  let body   = '';
+
+  if (phase === 'portfolio') {
+    const offers = game.pendingOffers || [];
+    const hasActuarial2 = hasStaff('actuarial') || hasUnlock('actuarial-intern') || !!game.flags.freeActuarial;
+    const offerCards = offers.length === 0
+      ? `<div class="empty-state">📭 No new clients available this quarter.</div>`
+      : offers.map(o => {
+          const m         = LINE_META[o.line] || {};
+          const svg       = SVG_ICONS[m.svgFile] || '';
+          const mult      = _sliderMult[o.id] || 1.0;
+          const adjPrem   = Math.round(o.basePremium * mult);
+          const pColor    = mult > 1.12 ? 'var(--amber)' : mult < 0.88 ? 'var(--red)' : 'var(--green)';
+          const rColor    = RISK_COLORS[o.riskLevel] || 'var(--text)';
+          const sliderVal = Math.round(mult * 100);
+          const renewBadge = o.isRenewal
+            ? `<span style="font-size:9px;padding:2px 5px;background:#001122;color:var(--cyan);border:1px solid #00ccff44;border-radius:2px;letter-spacing:1px">↻ RENEWAL</span>`
+            : '';
+          const actuarialNote = hasActuarial2
+            ? `<span style="color:var(--text-dim)">Avg exp.: ¢${fmt(Math.round((o.claimRange[0]+o.claimRange[1])/2*o.claimChance))}/qtr</span>`
+            : '';
+          return `
+          <div class="offer-card fade-in" style="border-left-color:${m.color}">
+            <div class="offer-header">
+              <div class="offer-line-tag" style="color:${m.color}">${svg} <span>${m.label}</span></div>
+              <div style="display:flex;gap:6px;align-items:center">
+                ${renewBadge}
+                <span class="offer-risk-badge" style="background:${rColor}22;color:${rColor};border:1px solid ${rColor}44">${o.riskLevel}</span>
+              </div>
+            </div>
+            <div class="offer-name">${o.name}</div>
+            <div class="offer-quip">${o.quip}</div>
+            <div class="offer-stats">
+              <span>📅 <strong>${o.terms}</strong> qtrs</span>
+              <span>🔒 Max: <strong>¢${fmt(o.maxPayout)}</strong></span>
+              <span>📊 <strong>${Math.round(o.claimChance*100)}%</strong>/qtr</span>
+              ${actuarialNote}
+            </div>
+            <div class="offer-slider-row">
+              <span class="offer-slider-label">Premium</span>
+              <input type="range" class="offer-slider" min="70" max="130" step="5" value="${sliderVal}" data-slider-offer="${o.id}">
+              <span class="offer-premium-display" id="prem-${o.id}" style="color:${pColor}">¢${fmt(adjPrem)}/qtr</span>
+            </div>
+            <div class="offer-actions">
+              <button class="btn btn-success btn-sm" data-action="sign-client" data-value="${o.id}">✓ Sign Client</button>
+              <button class="btn btn-ghost btn-sm" data-action="decline-offer" data-value="${o.id}">✗ Pass</button>
+            </div>
+          </div>`;
+        }).join('');
+
+    // Staff hiring UI
+    const hiredStaff = game.staff || [];
+    const staffCards = STAFF_DEPTS.map(dept => {
+      const hired = hiredStaff.includes(dept.id);
+      const hasActuarial = hiredStaff.includes('actuarial');
+      return `
+        <div class="staff-card ${hired ? 'hired' : ''}">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:18px">${dept.icon}</span>
+            <span style="font-size:13px;font-weight:bold;color:${hired ? 'var(--green)' : 'var(--text)'}">${dept.name}</span>
+            ${hired ? '<span style="font-size:10px;color:var(--green);margin-left:auto">● ACTIVE</span>' : ''}
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">${dept.desc}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px">
+            <span>Cost: <strong style="color:var(--cyan)">¢${fmt(dept.cost)}</strong> · Upkeep: <strong style="color:var(--amber)">¢${fmt(dept.upkeep)}/qtr</strong></span>
+            ${hired
+              ? `<button class="btn btn-danger btn-sm" data-action="fire-dept" data-value="${dept.id}">🔥 Dissolve</button>`
+              : `<button class="btn btn-success btn-sm" data-action="hire-dept" data-value="${dept.id}"
+                  ${game.capital < dept.cost ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}>
+                  + Hire</button>`}
+          </div>
+        </div>`;
+    }).join('');
+
+    const remaining = maxTurns - turn;
+    body = `
+      <div style="margin-bottom:12px;color:var(--text-dim);font-size:12px">
+        <strong style="color:var(--cyan)">${date}</strong> ·
+        ${remaining} quarter${remaining !== 1 ? 's' : ''} remaining until IPO target ·
+        ${game.policies.length} active polic${game.policies.length !== 1 ? 'ies' : 'y'}
+      </div>
+      <div class="section-title" style="margin-bottom:10px">📨 Client Offers This Quarter</div>
+      <div class="offer-list">${offerCards}</div>
+      <div class="section-title" style="margin:16px 0 10px">🏢 Staff & Departments</div>
+      <div class="staff-list">${staffCards}</div>
+
+      ${game.exposure > 0 ? `
+      <div class="section-title" style="margin:16px 0 10px">☂ Reinsurance</div>
+      <div class="staff-card ${game.reinsurancePurchased ? 'hired' : ''}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          ${SVG_ICONS['icon-reinsurance']}
+          <span style="font-weight:bold;color:${game.reinsurancePurchased ? 'var(--green)' : 'var(--gold)'}">
+            Catastrophe Reinsurance
+          </span>
+          ${game.reinsurancePurchased ? '<span style="font-size:10px;color:var(--green);margin-left:auto">● ACTIVE THIS QUARTER</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">
+          Caps any catastrophe loss at ¢${fmt(game.reinsuranceCap)} this quarter. One-time purchase per turn.
+          Cost scales with your risk exposure.
+        </div>
+        ${game.reinsurancePurchased
+          ? `<div style="font-size:11px;color:var(--green)">✓ Protected for this quarter.</div>`
+          : (() => {
+              const cost = Math.round(game.exposure * 0.04);
+              return `<div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px">Cost this quarter: <strong style="color:var(--gold)">¢${fmt(cost)}</strong></span>
+                <button class="btn btn-sm" style="background:#221100;color:var(--gold);border:1px solid var(--amber-dim)"
+                  data-action="buy-reinsurance" data-value="${cost}"
+                  ${game.capital < cost ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}>
+                  ☂ Purchase
+                </button>
+              </div>`;
+            })()
+        }
+      </div>` : ''}
+    `;
+  }
+
+  else if (phase === 'events') {
+    const pending  = game.pendingCards  || [];
+    const resolved = game.resolvedCards || [];
+
+    // Show resolved cards' summaries first
+    const resolvedHtml = resolved.map(r => `
+      <div class="resolved-summary">
+        <div class="resolved-summary-title">✓ ${r.title} — ${r.choice}</div>
+        <div class="resolved-summary-result">${r.result}</div>
+      </div>`).join('');
+
+    // Show current active card (first pending)
+    let activeCardHtml = '';
+    if (pending.length > 0) {
+      const card = pending[0];
+      const tm   = CARD_TYPE_META[card.type] || CARD_TYPE_META.flavor;
+      const lm   = LINE_META[card.line]      || {};
+      const typeIcon = SVG_ICONS[`card-type-${card.type}`] || '';
+      const choicesHtml = card.choices.map((ch, i) => `
+        <button class="event-choice-btn"
+                data-action="resolve-choice"
+                data-card-id="${card.id}"
+                data-choice-idx="${i}">
+          <span><span class="kbd-hint">${i+1}</span> ${ch.label}</span>
+          <span class="choice-preview">${ch.preview || ''}</span>
+        </button>`).join('');
+
+      activeCardHtml = `
+        <div class="event-card fade-in">
+          <div class="event-card-header">
+            <span class="event-type-badge" style="background:${tm.bg};color:${tm.color};border:1px solid ${tm.color}44">
+              ${typeIcon} ${tm.label}
+            </span>
+            ${lm.label ? `<span class="event-line-tag" style="color:${lm.color}">${lm.icon || ''} ${lm.label}</span>` : ''}
+          </div>
+          <div class="event-title">${card.title}</div>
+          <div class="event-flavor">${card.flavor}</div>
+          <div class="event-choices">${choicesHtml}</div>
+        </div>`;
+    } else {
+      activeCardHtml = `
+        <div class="info-box fade-in" style="color:var(--green)">
+          <p>✅ All events resolved for this quarter. The galaxy is momentarily under control.</p>
+        </div>`;
+    }
+
+    const pendingIndicator = pending.length > 0
+      ? `<div class="cards-pending-indicator">⚡ ${pending.length} event${pending.length > 1 ? 's' : ''} pending — resolve before proceeding</div>`
+      : '';
+
+    body = `${pendingIndicator}${activeCardHtml}${resolvedHtml}`;
+  }
+
+  else if (phase === 'resolution') {
+    const detail    = game.resolutionDetail || [];
+    const upkeepAmt = staffUpkeep();
+    const netClaims = lastExpenses - upkeepAmt;
+
+    const policyRows = detail.map(d => {
+      if (d.isCatastrophe) {
+        return `
+          <div style="margin:6px 0 4px">${SVG_ICONS['banner-catastrophe']}</div>
+          <div class="ledger-row" style="background:#220005;border-radius:3px;padding:4px 8px;margin-bottom:6px">
+            <span class="ledger-label" style="color:var(--red)">☄ Catastrophe Loss</span>
+            <span style="color:var(--red);font-weight:bold">-¢${fmt(d.claimAmt)}</span>
+          </div>`;
+      }
+      if (d.isCancelled) {
+        return `
+          <div class="ledger-row" style="background:#221100;border-radius:3px;padding:3px 8px;opacity:0.8">
+            <span class="ledger-label" style="color:var(--amber)">🔴 ${d.name}</span>
+            <span style="color:var(--amber);font-size:10px">HEAT CANCELLATION</span>
+          </div>`;
+      }
+      const expiryNote = d.expired ? ' <span style="color:var(--amber);font-size:10px">[EXPIRED]</span>' : '';
+      const claimNote  = d.hadClaim
+        ? `<span style="color:var(--red)">💸 -¢${fmt(d.claimAmt)}</span>`
+        : `<span style="color:var(--text-dim)">— no claim</span>`;
+      return `
+        <div class="ledger-row">
+          <span class="ledger-label">${d.name}${expiryNote}</span>
+          <div style="display:flex;gap:16px;align-items:center">
+            ${d.premium > 0 ? `<span style="color:var(--green)">+¢${fmt(d.premium)}</span>` : ''}
+            ${claimNote}
+          </div>
+        </div>`;
+    }).join('');
+
+    const noPolicies = detail.length === 0
+      ? `<div class="ledger-row"><span class="ledger-label" style="color:var(--amber)">⚠ No active policies — no premium income this quarter.</span></div>`
+      : '';
+
+    const upkeepRow = upkeepAmt > 0
+      ? `<div class="ledger-row"><span class="ledger-label">🏢 Staff Upkeep</span><span style="color:var(--red)">-¢${fmt(upkeepAmt)}</span></div>`
+      : '';
+
+    body = `
+      <div class="ledger fade-in">
+        ${noPolicies}
+        ${policyRows}
+        ${upkeepRow}
+        <div class="ledger-row total">
+          <span class="ledger-label">Net This Quarter</span>
+          <span style="color:${netColor(lastNet)}">${lastNet >= 0 ? '+' : '-'}¢${fmt(Math.abs(lastNet))}</span>
+        </div>
+      </div>
+      <div class="info-box" style="font-size:12px">
+        <div style="display:flex;gap:24px">
+          <span>Capital: <strong style="color:${moneyColor(capital)}">¢${fmt(capital)}</strong></span>
+          <span>Rep: <strong style="color:${repColor(reputation)}">${reputation}</strong></span>
+        </div>
+      </div>
+    `;
+  }
+
+  else if (phase === 'report') {
+    const lifetimeNet  = lifetimeIncome - lifetimeExpenses;
+    const remaining    = maxTurns - turn;
+    const lossRatio    = lastIncome > 0 ? Math.round((lastExpenses / lastIncome) * 100) : 0;
+    const lrColor      = lossRatio < 60 ? 'var(--green)' : lossRatio < 90 ? 'var(--amber)' : 'var(--red)';
+    const netArrow     = lastNet >= 0 ? '▲' : '▼';
+    const activePols   = game.policies.length;
+    const expiredThisQ = (game.resolutionDetail || []).filter(d => d.expired && !d.isCatastrophe).length;
+    const claimsThisQ  = (game.resolutionDetail || []).filter(d => d.hadClaim && !d.isCatastrophe).length;
+
+    // Simple ASCII bar chart for the last turn's P&L
+    const barMax = Math.max(lastIncome, lastExpenses, 1);
+    const incBar = '█'.repeat(Math.round((lastIncome  / barMax) * 20)).padEnd(20, '░');
+    const expBar = '█'.repeat(Math.round((lastExpenses/ barMax) * 20)).padEnd(20, '░');
+
+    body = `
+      <div class="report-stat-row fade-in">
+        <div class="report-stat">
+          <div class="report-stat-label">Capital</div>
+          <div class="report-stat-val" style="color:${moneyColor(capital)}" class="${capital < 2000 ? 'capital-warning' : ''}">¢${fmt(capital)}</div>
+        </div>
+        <div class="report-stat">
+          <div class="report-stat-label">Reputation</div>
+          <div class="report-stat-val" style="color:${repColor(reputation)}">${reputation}</div>
+        </div>
+        <div class="report-stat">
+          <div class="report-stat-label">Qtr Net</div>
+          <div class="report-stat-val" style="color:${netColor(lastNet)}">${netArrow}¢${fmt(Math.abs(lastNet))}</div>
+        </div>
+      </div>
+
+      <div class="ledger fade-in" style="font-size:12px">
+        <div class="ledger-row">
+          <span class="ledger-label">Premium Income</span>
+          <span style="color:var(--green)">+¢${fmt(lastIncome)}</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-label">Income bar</span>
+          <span style="font-family:monospace;font-size:10px;color:var(--green)">${incBar}</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-label">Claims & Expenses</span>
+          <span style="color:${lastExpenses > 0 ? 'var(--red)' : 'var(--text-dim)'}">-¢${fmt(lastExpenses)}</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-label">Expense bar</span>
+          <span style="font-family:monospace;font-size:10px;color:var(--red)">${expBar}</span>
+        </div>
+        <div class="ledger-row">
+          <span class="ledger-label">Loss Ratio</span>
+          <span style="color:${lrColor}">${lossRatio}%</span>
+        </div>
+        <div class="ledger-row total">
+          <span class="ledger-label">Lifetime Net</span>
+          <span style="color:${netColor(lifetimeNet)}">${lifetimeNet >= 0 ? '+' : '-'}¢${fmt(Math.abs(lifetimeNet))}</span>
+        </div>
+      </div>
+
+      <div class="info-box" style="font-size:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div>Active policies: <strong>${activePols}</strong></div>
+          <div>Claims this qtr: <strong style="color:${claimsThisQ > 0 ? 'var(--red)' : 'var(--green)'}">${claimsThisQ}</strong></div>
+          <div>Expired: <strong style="color:${expiredThisQ > 0 ? 'var(--amber)' : 'var(--text-dim)'}">${expiredThisQ}</strong></div>
+        </div>
+        <div style="margin-top:8px;color:var(--text-dim)">
+          Quarters remaining: <strong style="color:var(--amber)">${remaining}</strong>
+          · Solvency: <strong>${game.solvencyRating}</strong>
+          · Heat: <strong style="color:${heatColor(game.heat)}">${game.heat}</strong>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('phase-panel').innerHTML = `
+    <div class="phase-header">
+      <span class="phase-title">${meta.icon} ${meta.label}</span>
+      <span class="phase-subtitle">Turn ${turn}/${maxTurns} · ${meta.sub}</span>
+    </div>
+    <div class="phase-body">${body}</div>
+  `;
+}
+
+/* ============================================================
+   RENDER — FOOTER
+   ============================================================ */
+function renderFooter() {
+  const { phase, isGameOver } = game;
+  const phaseIdx = PHASES.indexOf(phase);
+  const adv      = PHASE_ADVANCE[phase];
+
+  const pips = PHASES.map((_, i) => {
+    const cls = i < phaseIdx ? 'pip-done' : i === phaseIdx ? 'pip-active' : '';
+    return `<div class="phase-pip ${cls}"></div>`;
+  }).join('');
+
+  const eventsBlocked = phase === 'events' && (game.pendingCards || []).length > 0;
+  let actionBtn;
+  if (isGameOver) {
+    actionBtn = `<button class="btn btn-primary" data-action="new-game">↺ Start New Run</button>`;
+  } else if (eventsBlocked) {
+    actionBtn = `<button class="btn btn-ghost" style="opacity:0.4;cursor:not-allowed" disabled>
+      Resolve ${game.pendingCards.length} event${game.pendingCards.length > 1 ? 's' : ''} first
+    </button>`;
+  } else {
+    actionBtn = `<button class="btn ${adv.cls}" data-action="advance-phase">${adv.label} <span class="kbd-hint">↵</span></button>`;
+  }
+
+  const diff      = difficultyScale(game.turn);
+  const diffColor = diff <= 0.85 ? 'var(--green)' : diff <= 1.0 ? 'var(--cyan)' : diff <= 1.3 ? 'var(--amber)' : 'var(--red)';
+  const diffStr   = diff <= 0.85 ? 'EASY' : diff <= 1.0 ? 'NOM' : diff <= 1.3 ? 'HARD' : 'BRUTAL';
+
+  document.getElementById('footer-bar').innerHTML = `
+    <div class="phase-pip-row">${pips}</div>
+    <span class="footer-label">
+      Phase ${phaseIdx + 1}/4 — ${PHASE_META[phase].sub}
+      <span class="diff-chip" style="background:${diffColor}22;color:${diffColor};border:1px solid ${diffColor}44">${diffStr}</span>
+    </span>
+    <div class="footer-actions">${actionBtn}</div>
+  `;
+}
+
+/* ============================================================
+   RENDER — MODAL
+   ============================================================ */
+function renderModal() {
+  const overlay = document.getElementById('modal-overlay');
+  if (!game.isGameOver) { overlay.classList.add('hidden'); return; }
+  overlay.classList.remove('hidden');
+
+  let icon, titleTxt, titleColor, bodyTxt, banner = '';
+
+  if (game.isVictory && game.gameOverReason === 'ipo') {
+    icon      = '🚀';
+    titleColor = 'var(--green)';
+    titleTxt  = 'Successful IPO!';
+    bodyTxt   = `Mutual of Andromeda survived all ${game.maxTurns} quarters and went public with ¢${fmt(game.capital)} in reserve.
+                 Galactic valuation: ¢${fmt(game.capital * 12)}. Gerald is celebrating. You get a small trophy.`;
+    banner    = SVG_ICONS['banner-victory'];
+  } else if (game.isVictory && game.gameOverReason === 'ipo-narrow') {
+    icon      = '📋';
+    titleColor = 'var(--amber)';
+    titleTxt  = 'Narrow Exit';
+    bodyTxt   = `You survived all ${game.maxTurns} quarters — but your capital (¢${fmt(game.capital)}) fell short of the ¢${fmt(BALANCE.winCapital)} IPO threshold.
+                 Mutual of Andromeda exits quietly via private sale. Nobody gets a trophy. Gerald sighs.`;
+    banner    = '';
+  } else if (game.gameOverReason === 'bankrupt') {
+    icon      = '💸';
+    titleColor = 'var(--red)';
+    titleTxt  = 'INSOLVENT';
+    bodyTxt   = `Capital hit ¢0. Creditors arrived. Alien clients also arrived.
+                 The creditors are afraid of the alien clients. Gerald is here.`;
+  } else {
+    icon      = '🔴';
+    titleColor = 'var(--red)';
+    titleTxt  = 'License Revoked!';
+    bodyTxt   = `Your reputation bottomed out and the Galactic Bureau pulled your license.
+                 Even the sandworms won't return your calls. Gerald is here again.`;
+  }
+
+  // Earn IC and update meta — guarded by _icEarned flag to prevent double-earn on re-renders
+  if (!_icEarned) {
+    _icEarned = true;
+    meta.industrycred += earnIC();
+    meta.totalRuns    += 1;
+    meta.bestCapital   = Math.max(meta.bestCapital, game.capital);
+    meta.bestTurns     = Math.max(meta.bestTurns,   game.turn);
+    if (game.isDaily) {
+      const dateStr = getDailyDateStr();
+      if (!meta.dailyBest[dateStr] || game.capital > meta.dailyBest[dateStr]) {
+        meta.dailyBest[dateStr] = game.capital;
+      }
+    }
+    saveMeta();
+  }
+  const icEarned = earnIC(); // read-only, for display
+
+  // Unlock store
+  const unlockItems = UNLOCKS.map(u => {
+    const owned    = meta.unlocks.includes(u.id);
+    const canBuy   = !owned && meta.industrycred >= u.cost;
+    return `<div class="unlock-item ${owned ? 'owned' : ''}">
+      <span style="font-size:18px">${u.icon}</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:bold;color:${owned ? 'var(--green)' : 'var(--text)'}">${u.name}</div>
+        <div style="font-size:10px;color:var(--text-dim)">${u.desc}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        ${owned
+          ? `<span style="font-size:10px;color:var(--green)">✓ Owned</span>`
+          : `<div style="font-size:10px;color:var(--gold);margin-bottom:3px">${SVG_ICONS['icon-industry-cred']} ${u.cost} IC</div>
+             <button class="btn btn-sm" style="font-size:10px;padding:3px 8px;background:#221100;color:var(--gold);border:1px solid var(--amber-dim)"
+               data-action="buy-unlock" data-value="${u.id}"
+               ${!canBuy ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}>Buy</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+
+  const lifetimeNet = game.lifetimeIncome - game.lifetimeExpenses;
+
+  overlay.innerHTML = `
+    <div class="modal fade-in" style="max-width:560px;max-height:90vh;overflow-y:auto">
+      ${banner ? `<div style="margin-bottom:16px;border-radius:4px;overflow:hidden">${banner}</div>` : ''}
+      <div class="modal-icon">${icon}</div>
+      <h2 class="modal-title" style="font-size:22px;color:${titleColor};margin-bottom:10px">${titleTxt}</h2>
+      <p class="modal-body" style="margin-bottom:16px">${bodyTxt}</p>
+
+      <div class="modal-stat-row">
+        <div class="modal-stat-item">
+          <div class="modal-stat-label">Final Capital</div>
+          <div class="modal-stat-val" style="color:${moneyColor(game.capital)}">¢${fmt(game.capital)}</div>
+        </div>
+        <div class="modal-stat-item">
+          <div class="modal-stat-label">Quarters</div>
+          <div class="modal-stat-val" style="color:var(--amber)">${game.turn}/${game.maxTurns}</div>
+        </div>
+        <div class="modal-stat-item">
+          <div class="modal-stat-label">IC Earned</div>
+          <div class="modal-stat-val" style="color:var(--gold)">+${icEarned} ${SVG_ICONS['icon-industry-cred']}</div>
+        </div>
+      </div>
+
+      ${game.isDaily ? (() => {
+        const dateStr = getDailyDateStr();
+        const seedHex = (game.seed >>> 0).toString(16).toUpperCase().padStart(8,'0');
+        const prevBest = meta.dailyBest[dateStr] || 0;
+        const isNewBest = game.capital >= prevBest;
+        const outcome = game.isVictory
+          ? (game.gameOverReason === 'ipo' ? 'IPO VICTORY' : 'NARROW EXIT')
+          : (game.gameOverReason === 'bankrupt' ? 'BANKRUPT' : 'LICENSE REVOKED');
+        const shareText = `[MoA Daily ${dateStr}] ${outcome} | Cap:¢${fmt(game.capital)} | Rep:${game.reputation} | Turns:${game.turn}/${game.maxTurns} | Seed:${seedHex}`;
+        return `<div style="background:rgba(0,204,255,0.07);border:1px solid rgba(0,204,255,0.3);border-radius:4px;padding:12px;margin-bottom:14px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--cyan);margin-bottom:8px">
+            📅 Daily Challenge — ${dateStr}${isNewBest ? ' <span style="color:var(--gold)">★ New Best!</span>' : ''}
+          </div>
+          <div style="font-family:monospace;font-size:10px;color:var(--text-dim);background:var(--panel-alt);padding:6px 8px;border-radius:3px;margin-bottom:8px;word-break:break-all">${shareText}</div>
+          <button class="btn btn-ghost btn-sm" data-action="copy-daily-score" data-value="${encodeURIComponent(shareText)}" style="width:100%;font-size:10px">📋 Copy Score</button>
+        </div>`;
+      })() : ''}
+
+      <div style="background:var(--panel-alt);border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:16px">
+        <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">
+          ${SVG_ICONS['icon-industry-cred']} Industry Cred: <strong style="color:var(--gold)">${meta.industrycred} IC</strong>
+          · Total Runs: ${meta.totalRuns} · Best Capital: ¢${fmt(meta.bestCapital)}
+        </div>
+        <div class="unlock-list">${unlockItems}</div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" data-action="new-game">↺ New Run</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   MAIN RENDER
+   ============================================================ */
+function render() {
+  renderHUD();
+  renderPortfolio();
+  renderPhasePanel();
+  renderFooter();
+  renderModal();
+  renderDebugPanel();
+  // Don't re-render settings on every state change — only when explicitly triggered
+}
+
+/* ============================================================
+   EVENT DELEGATION
+   ============================================================ */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  handleAction(el.dataset.action, el.dataset.value, el.dataset);
+});
+
+// Slider: update premium display without a full setState (perf)
+document.addEventListener('input', e => {
+  const slider = e.target;
+  if (!slider.dataset.sliderOffer) return;
+  const offerId = slider.dataset.sliderOffer;
+  const mult    = parseInt(slider.value, 10) / 100;
+  _sliderMult[offerId] = mult;
+
+  const offer = (game.pendingOffers || []).find(o => o.id === offerId);
+  if (!offer) return;
+  const adj    = Math.round(offer.basePremium * mult);
+  const label  = document.getElementById(`prem-${offerId}`);
+  if (label) {
+    label.textContent = `¢${adj.toLocaleString()}/qtr`;
+    label.style.color = mult > 1.12 ? 'var(--amber)' : mult < 0.88 ? 'var(--red)' : 'var(--green)';
+  }
+});
+
+function handleAction(action, value, dataset) {
+  dataset = dataset || {};
+  switch (action) {
+    case 'advance-phase':
+      advancePhase();
+      break;
+
+    case 'new-game':
+      if (game.isGameOver || confirm('Start a new run? Current run will be lost.')) {
+        newGame();
+      }
+      break;
+
+    case 'sign-client': {
+      const offerId = value;
+      const offer   = (game.pendingOffers || []).find(o => o.id === offerId);
+      if (!offer) break;
+      const mult    = _sliderMult[offerId] || 1.0;
+      const premium = Math.round(offer.basePremium * mult);
+      const policy  = {
+        id:           offerId + '_t' + game.turn,
+        archetypeId:  offerId,
+        line:         offer.line,
+        name:         offer.name,
+        premium,
+        basePremium:  offer.basePremium,
+        maxPayout:    offer.maxPayout,
+        claimChance:  offer.claimChance,
+        claimRange:   offer.claimRange,
+        termsRemaining: offer.terms,
+        termsTotal:   offer.terms,
+        signedTurn:   game.turn,
+      };
+      // Slight rep penalty for price-gouging, bonus for fair pricing
+      const repDelta = mult > 1.2 ? -4 : mult < 0.85 ? +3 : 0;
+      delete _sliderMult[offerId];
+      setState({
+        policies:      [...game.policies, policy],
+        pendingOffers: (game.pendingOffers || []).filter(o => o.id !== offerId),
+        reputation:    game.reputation + repDelta,
+      });
+      addLog('info', `📝 Signed: ${offer.name} @ ¢${fmt(premium)}/qtr`);
+      break;
+    }
+
+    case 'decline-offer': {
+      delete _sliderMult[value];
+      setState({ pendingOffers: (game.pendingOffers || []).filter(o => o.id !== value) });
+      break;
+    }
+
+    case 'resolve-choice': {
+      resolveChoice(dataset.cardId, parseInt(dataset.choiceIdx, 10));
+      break;
+    }
+
+    case 'hire-dept': {
+      const dept = STAFF_DEPTS.find(d => d.id === value);
+      if (!dept || game.capital < dept.cost) break;
+      if ((game.staff || []).includes(value)) break;
+      setState({
+        capital: game.capital - dept.cost,
+        staff:   [...(game.staff || []), value],
+      });
+      addLog('info', `🏢 Hired: ${dept.name} (¢${fmt(dept.cost)} upfront, ¢${fmt(dept.upkeep)}/qtr)`);
+      break;
+    }
+
+    case 'fire-dept': {
+      const dept2 = STAFF_DEPTS.find(d => d.id === value);
+      if (!dept2) break;
+      const refund = Math.round(dept2.cost * 0.5);
+      setState({
+        capital: game.capital + refund,
+        staff:   (game.staff || []).filter(id => id !== value),
+      });
+      addLog('warn', `🔥 Dissolved: ${dept2.name} (refund: ¢${fmt(refund)})`);
+      break;
+    }
+
+    // M10: Settings & tutorial actions
+    case 'open-settings':
+      _settingsVisible = true; _tutVisible = false; renderSettings(); break;
+    case 'close-settings':
+      _settingsVisible = false; renderSettings(); break;
+    case 'show-tutorial':
+      _settingsVisible = false; showTutorial(); break;
+    case 'tut-next':
+      if (_tutStep < TUTORIAL_STEPS.length - 1) { _tutStep++; renderSettings(); }
+      else { _tutVisible = false; settings.firstRun = false; saveSettings(); renderSettings(); }
+      break;
+    case 'tut-prev':
+      if (_tutStep > 0) { _tutStep--; renderSettings(); } break;
+    case 'tut-skip':
+      _tutVisible = false; settings.firstRun = false; saveSettings(); renderSettings(); break;
+    case 'reset-meta':
+      if (confirm('Reset all Industry Cred and unlocks? This cannot be undone.')) {
+        meta = initialMeta(); saveMeta(); _settingsVisible = false; renderSettings(); renderHUD();
+      }
+      break;
+
+    case 'show-credits': {
+      const overlay = document.getElementById('settings-overlay');
+      overlay.classList.remove('hidden');
+      overlay.innerHTML = `
+        <div class="settings-modal" style="max-width:480px">
+          <div style="text-align:center;margin-bottom:20px">
+            ${SVG_ICONS['banner-victory']}
+          </div>
+          <h2 style="font-size:18px;color:var(--cyan);margin-bottom:6px;text-align:center">Space Insurer</h2>
+          <p style="font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:20px">
+            v${GAME_VERSION} · A single-file browser roguelike
+          </p>
+          <div style="font-size:12px;color:var(--text-dim);line-height:2;border-top:1px solid var(--border);padding-top:16px">
+            <p><strong style="color:var(--text)">Design & Code</strong> — Claude (Anthropic)</p>
+            <p><strong style="color:var(--text)">SVG Assets</strong> — Gemini (Google)</p>
+            <p><strong style="color:var(--text)">Executive Producer</strong> — You</p>
+            <p style="margin-top:12px;font-size:10px;color:var(--text-dim)">
+              All galactic disasters, hive-mind disputes, and existential crises depicted are fictional.
+              Mutual of Andromeda is not a real insurance company. Please do not submit claims.
+              Gerald is real. Gerald is fine. Probably.
+            </p>
+          </div>
+          <div style="text-align:center;margin-top:16px">
+            <button class="btn btn-ghost btn-sm" data-action="close-settings">← Back to Settings</button>
+          </div>
+        </div>`;
+      break;
+    }
+
+    case 'seed-new-game': {
+      const inp = document.getElementById('seed-input');
+      const seedStr = inp ? inp.value.trim() : '';
+      const customSeed = seedStr ? parseInt(seedStr, 16) : null;
+      if (!customSeed || isNaN(customSeed)) { break; }
+      _settingsVisible = false; renderSettings();
+      game = initialState();
+      game.seed = customSeed >>> 0;
+      rng = createRNG(game.seed);
+      applyStartBonuses();
+      game.pendingOffers = pickOffers();
+      pushLog('system', `🎲 Custom seed run: ${customSeed.toString(16).toUpperCase()}`);
+      setState({});
+      break;
+    }
+
+    case 'dbg-capital': setState({ capital:  game.capital    + 5000 }); renderDebugPanel(); break;
+    case 'dbg-rep':     setState({ reputation: Math.min(100, game.reputation + 20) }); renderDebugPanel(); break;
+    case 'dbg-heat':    setState({ heat: Math.max(0, game.heat - 20) }); renderDebugPanel(); break;
+    case 'dbg-turn':    advancePhase(); renderDebugPanel(); break;
+    case 'dbg-win':     setState({ isGameOver:true, isVictory:true,  gameOverReason:'ipo' }); break;
+    case 'dbg-bust':    setState({ isGameOver:true, isVictory:false, gameOverReason:'bankrupt' }); break;
+
+    case 'buy-unlock': {
+      const unlockDef = UNLOCKS.find(u => u.id === value);
+      if (!unlockDef || meta.unlocks.includes(value) || meta.industrycred < unlockDef.cost) break;
+      meta.industrycred -= unlockDef.cost;
+      meta.unlocks.push(value);
+      saveMeta();
+      renderModal();  // re-render modal with updated state
+      break;
+    }
+
+    case 'buy-reinsurance': {
+      const cost = parseInt(value, 10);
+      if (isNaN(cost) || game.capital < cost || game.reinsurancePurchased) break;
+      setState({ capital: game.capital - cost, reinsurancePurchased: true });
+      addLog('info', `☂ Reinsurance purchased for ¢${fmt(cost)} — catastrophe losses capped at ¢${fmt(game.reinsuranceCap)}`);
+      break;
+    }
+
+    // M11: Daily Challenge
+    case 'play-daily': {
+      if (!game.isGameOver && !confirm('Start the Daily Challenge? Current run will be lost.')) break;
+      _settingsVisible = false; renderSettings();
+      _icEarned = false;
+      game = initialState();
+      game.seed   = getDailySeed();
+      game.isDaily = true;
+      rng = createRNG(game.seed);
+      applyStartBonuses();
+      game.pendingOffers = pickOffers();
+      pushLog('system', `📅 Daily Challenge — ${getDailyDateStr()} — seed: ${game.seed.toString(16).toUpperCase()}`);
+      setState({});
+      break;
+    }
+
+    case 'copy-daily-score': {
+      const text = decodeURIComponent(value || '');
+      if (!text) break;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).catch(() => {});
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+      }
+      const btn = document.querySelector('[data-action="copy-daily-score"]');
+      if (btn) { btn.textContent = '✓ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy Score'; }, 2000); }
+      break;
+    }
+
+    // M12: Hall of Companies
+    case 'show-hall': {
+      const overlay = document.getElementById('settings-overlay');
+      overlay.classList.remove('hidden');
+      const history = meta.runHistory || [];
+      const rows = history.length === 0
+        ? `<div style="text-align:center;color:var(--text-dim);padding:20px 0">No runs recorded yet. Play a run to get started.</div>`
+        : history.map((r, i) => {
+            const outcomeColor = r.outcome.includes('Victory') ? 'var(--green)' : r.outcome === 'Narrow Exit' ? 'var(--amber)' : 'var(--red)';
+            return `<div style="display:grid;grid-template-columns:24px 1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)${i === history.length-1 ? ';border-bottom:none':''};font-size:11px">
+              <span style="font-size:9px;color:var(--text-dim)">#${i+1}</span>
+              <div>
+                <div style="color:var(--text);font-size:11px">${r.outcome}${r.isDaily ? ' <span style="color:var(--cyan);font-size:9px">DAILY</span>' : ''}</div>
+                <div style="color:var(--text-dim);font-size:9px">${r.date} · ${r.turns} qtrs · Seed: ${r.seedHex}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="color:${outcomeColor};font-size:11px">¢${fmt(r.capital)}</div>
+                <div style="color:var(--text-dim);font-size:9px">Rep ${r.reputation}</div>
+              </div>
+            </div>`;
+          }).join('');
+      overlay.innerHTML = `
+        <div class="settings-modal" style="max-width:520px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h2 style="font-size:16px;color:var(--amber)">📜 Hall of Folded Companies</h2>
+            <button class="btn btn-ghost btn-sm" data-action="close-settings">✕ Close</button>
+          </div>
+          <p style="font-size:10px;color:var(--text-dim);margin-bottom:14px">A dignified memorial to every run. Most didn't make it. Gerald was there for all of them.</p>
+          ${rows}
+        </div>`;
+      break;
+    }
+
+    // M12: Achievements panel
+    case 'show-achievements': {
+      const overlay = document.getElementById('settings-overlay');
+      overlay.classList.remove('hidden');
+      const unlockedCount = meta.achievements.length;
+      const achGrid = ACHIEVEMENTS.map(a => {
+        const unlocked = meta.achievements.includes(a.id);
+        return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px;border-radius:4px;background:${unlocked ? 'rgba(0,232,122,0.06)' : 'var(--panel-alt)'};border:1px solid ${unlocked ? 'rgba(0,232,122,0.2)' : 'var(--border)'};margin-bottom:6px">
+          <span style="font-size:20px;filter:${unlocked ? 'none' : 'grayscale(1)'}">${a.icon}</span>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:bold;color:${unlocked ? 'var(--green)' : 'var(--text-dim)'}">${unlocked ? a.name : '???'}</div>
+            <div style="font-size:10px;color:var(--text-dim)">${unlocked ? a.desc : 'Not yet unlocked'}</div>
+          </div>
+          ${unlocked ? `<span style="font-size:10px;color:var(--green)">✓</span>` : ''}
+        </div>`;
+      }).join('');
+      overlay.innerHTML = `
+        <div class="settings-modal" style="max-width:480px;max-height:90vh;overflow-y:auto">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <h2 style="font-size:16px;color:var(--gold)">🏆 Achievements</h2>
+            <button class="btn btn-ghost btn-sm" data-action="close-settings">✕ Close</button>
+          </div>
+          <p style="font-size:10px;color:var(--text-dim);margin-bottom:14px">${unlockedCount} of ${ACHIEVEMENTS.length} unlocked</p>
+          ${achGrid}
+        </div>`;
+      break;
+    }
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+// ============================================================
+// SETTINGS (M10)
+// ============================================================
+const SETTINGS_KEY = 'space_insurer_settings_v1';
+
+const DEFAULT_SETTINGS = {
+  soundEnabled:  false,   // WebAudio (future feature hook)
+  showSeedBar:   true,    // show run seed in HUD
+  difficulty:    'standard',  // 'easy' | 'standard' | 'hard'
+  firstRun:      true,    // show tutorial on first launch
+};
+
+let settings = { ...DEFAULT_SETTINGS };
+
+function saveSettings() {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {}
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) settings = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+
+// Tutorial steps
+const TUTORIAL_STEPS = [
+  {
+    title: 'Welcome to Mutual of Andromeda 🛡️',
+    body: 'You are the CEO of an interstellar insurance company. Your goal: survive 20 quarters without going bankrupt — and accumulate ¢15,000 for a full IPO exit.',
+  },
+  {
+    title: 'The Portfolio Phase 📋',
+    body: 'Each quarter begins here. Sign new client policies, adjust their premiums with the slider, and hire staff departments. Signed clients pay premiums — but they also file claims.',
+  },
+  {
+    title: 'Events & Claims ⚡',
+    body: 'After signing clients, you\'ll face galactic events: claims, crises, and opportunities. Each has 2–4 choices with different costs and consequences. Press 1/2/3 or click.',
+  },
+  {
+    title: 'Resolution & the Ledger ⚖️',
+    body: 'Premiums roll in, claims roll out. Watch the loss ratio — if claims eat more than ~65% of your premium income, you\'re in trouble. High-risk policies have terrible expected value.',
+  },
+  {
+    title: 'Stats to Watch 📊',
+    body: 'Capital (don\'t hit ¢0), Reputation (don\'t hit 0 or you lose your license), and Heat (too high and regulators cancel your policies). Use staff to manage all three.',
+  },
+  {
+    title: 'Meta-Progression 🏆',
+    body: 'You earn Industry Cred (IC) every run. Spend it on permanent unlocks between runs — better starting capital, extra client offers, and more. Check the end screen.',
+  },
+];
+
+let _tutStep = 0;
+let _tutVisible = false;
+let _settingsVisible = false;
+let _icEarned = false;  // M11/M12: prevents double IC on modal re-renders
+
+function showTutorial() {
+  _tutStep = 0;
+  _tutVisible = true;
+  renderSettings();
+}
+
+function renderSettings() {
+  const overlay = document.getElementById('settings-overlay');
+
+  if (_tutVisible) {
+    overlay.classList.remove('hidden');
+    const step = TUTORIAL_STEPS[_tutStep];
+    const isLast = _tutStep >= TUTORIAL_STEPS.length - 1;
+    overlay.innerHTML = `
+      <div class="settings-modal">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase">
+          Tutorial — Step ${_tutStep + 1} of ${TUTORIAL_STEPS.length}
+        </div>
+        <div class="tutorial-title">${step.title}</div>
+        <p class="tutorial-body">${step.body}</p>
+        <div class="tutorial-nav">
+          <span class="tutorial-progress">${'◆'.repeat(_tutStep + 1)}${'◇'.repeat(TUTORIAL_STEPS.length - _tutStep - 1)}</span>
+          <div style="display:flex;gap:8px">
+            ${_tutStep > 0 ? `<button class="btn btn-ghost btn-sm" data-action="tut-prev">← Back</button>` : ''}
+            <button class="btn ${isLast ? 'btn-success' : 'btn-primary'} btn-sm" data-action="tut-next">
+              ${isLast ? "Let's Go! 🚀" : 'Next →'}
+            </button>
+          </div>
+        </div>
+        <div style="margin-top:12px;text-align:center">
+          <button class="btn btn-ghost btn-sm" data-action="tut-skip" style="font-size:10px">Skip tutorial</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (_settingsVisible) {
+    overlay.classList.remove('hidden');
+    const seedHex = game.seed.toString(16).toUpperCase().padStart(8, '0');
+    overlay.innerHTML = `
+      <div class="settings-modal">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <h2 style="font-size:16px;color:var(--cyan)">⚙ Settings</h2>
+          <button class="btn btn-ghost btn-sm" data-action="close-settings">✕ Close</button>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Seed</div>
+            <div class="settings-desc">Share this code to replay the same run</div>
+          </div>
+          <div class="settings-control">
+            <code style="font-size:11px;color:var(--amber);background:var(--panel-alt);padding:3px 8px;border-radius:3px;border:1px solid var(--border)">${seedHex}</code>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Version</div>
+            <div class="settings-desc">Game version stamp</div>
+          </div>
+          <div class="settings-control">
+            <span style="font-size:11px;color:var(--text-dim)">${GAME_VERSION}</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Industry Cred</div>
+            <div class="settings-desc">Persistent across runs</div>
+          </div>
+          <div class="settings-control">
+            <span style="font-size:14px;color:var(--gold)">${meta.industrycred} IC</span>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Custom Seed</div>
+            <div class="settings-desc">Start a new run with a specific seed (hex, 1–8 chars)</div>
+          </div>
+          <div class="settings-control">
+            <input id="seed-input" type="text" placeholder="e.g. DEADBEEF"
+              style="width:90px;padding:3px 6px;background:var(--panel-alt);border:1px solid var(--border);
+              border-radius:3px;color:var(--amber);font-family:var(--font);font-size:11px;text-transform:uppercase"
+              maxlength="8">
+            <button class="btn btn-ghost btn-sm" data-action="seed-new-game">Start</button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Daily Challenge</div>
+            <div class="settings-desc">Today: ${getDailyDateStr()} · same seed for every player</div>
+          </div>
+          <div class="settings-control">
+            <button class="btn btn-ghost btn-sm" data-action="play-daily">▶ Play</button>
+          </div>
+        </div>
+
+        <div class="settings-row" style="margin-top:8px;padding-top:12px;border-top:1px solid var(--border);flex-direction:column;align-items:stretch;gap:8px">
+          <button class="btn btn-ghost btn-sm" data-action="show-tutorial" style="width:100%">📖 Show Tutorial</button>
+          <button class="btn btn-ghost btn-sm" data-action="show-achievements" style="width:100%">🏆 Achievements (${meta.achievements.length}/${ACHIEVEMENTS.length})</button>
+          <button class="btn btn-ghost btn-sm" data-action="show-hall" style="width:100%">📜 Hall of Folded Companies</button>
+          <button class="btn btn-ghost btn-sm" data-action="show-credits" style="width:100%">🌌 Credits</button>
+          <button class="btn btn-danger btn-sm" data-action="reset-meta" style="width:100%">⚠ Reset All Progress (lose IC & unlocks)</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  overlay.classList.add('hidden');
+}
+
+// ============================================================
+// DEBUG PANEL (M9)
+// ============================================================
+let _debugVisible = false;
+
+function renderDebugPanel() {
+  const panel = document.getElementById('debug-panel');
+  if (!_debugVisible) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+
+  const diff    = difficultyScale(game.turn);
+  const diffLabel = diff <= 0.85 ? 'EASY' : diff <= 1.0 ? 'NORM' : diff <= 1.3 ? 'HARD' : 'BRUTAL';
+  const diffColor = diff <= 0.85 ? 'var(--green)' : diff <= 1.0 ? 'var(--cyan)' : diff <= 1.3 ? 'var(--amber)' : 'var(--red)';
+
+  panel.innerHTML = `
+    <div class="dbg-title">
+      🛠 DEBUG <span style="color:var(--text-dim);font-size:9px">Ctrl+D to close</span>
+    </div>
+    <div class="dbg-row"><span>Turn</span><strong>${game.turn}/${game.maxTurns}</strong></div>
+    <div class="dbg-row"><span>Difficulty</span><strong style="color:${diffColor}">${diff.toFixed(2)}× (${diffLabel})</strong></div>
+    <div class="dbg-row"><span>Capital</span><strong style="color:var(--green)">¢${fmt(game.capital)}</strong></div>
+    <div class="dbg-row"><span>IPO Target</span><strong style="color:var(--amber)">¢${fmt(BALANCE.winCapital)}</strong></div>
+    <div class="dbg-row"><span>Rep / Heat</span><strong>${game.reputation} / ${game.heat}</strong></div>
+    <div class="dbg-row"><span>Exposure</span><strong>¢${fmt(game.exposure)}</strong></div>
+    <div class="dbg-row"><span>Policies</span><strong>${game.policies.length}</strong></div>
+    <div class="dbg-row"><span>Seed</span><strong style="font-size:9px">${game.seed.toString(16)}</strong></div>
+    <div class="dbg-btns">
+      <button class="dbg-btn" data-action="dbg-capital">+¢5k</button>
+      <button class="dbg-btn" data-action="dbg-rep">+20 rep</button>
+      <button class="dbg-btn" data-action="dbg-heat">-20 heat</button>
+      <button class="dbg-btn" data-action="dbg-turn">skip turn</button>
+      <button class="dbg-btn" data-action="dbg-win">force win</button>
+      <button class="dbg-btn" data-action="dbg-bust">go bust</button>
+    </div>
+  `;
+}
+
+// ============================================================
+// KEYBOARD SHORTCUTS (M8+M9)
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const key = e.key.toLowerCase();
+
+  if (e.ctrlKey && key === 'd') {
+    e.preventDefault();
+    _debugVisible = !_debugVisible;
+    renderDebugPanel();
+    return;
+  }
+
+  if (key === 'enter' || key === ' ') {
+    if (!game.isGameOver) advancePhase();
+  } else if (key === '1' || key === '2' || key === '3') {
+    if (game.phase === 'events' && (game.pendingCards || []).length > 0) {
+      const card = game.pendingCards[0];
+      const idx  = parseInt(key, 10) - 1;
+      if (idx < card.choices.length) resolveChoice(card.id, idx);
+    }
+  }
+});
+
+(function init() {
+  // Starfield background
+  const sfUri = 'data:image/svg+xml,' + encodeURIComponent(STARFIELD_SVG);
+  document.body.style.backgroundImage = `url("${sfUri}")`;
+  document.body.style.backgroundRepeat = 'repeat';
+  document.body.style.backgroundSize   = '400px 300px';
+
+  // Load meta-progression and settings
+  loadMeta();
+  loadSettings();
+
+  if (!loadGame()) newGame();
+  else render();
+
+  // Show tutorial for first-time players
+  if (settings.firstRun) showTutorial();
+})();
+</script>
+</body>
+</html>

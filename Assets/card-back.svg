@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 340" width="240" height="340">
+  <!-- Outer Card Frame and Background -->
+  <rect width="240" height="340" fill="#0a0a2a" rx="10" stroke="#2828aa" stroke-width="2.5" />
+  <rect x="3" y="3" width="234" height="334" fill="none" rx="8" stroke="#00ccff" stroke-width="0.5" opacity="0.3" />
+
+  <!-- Inner Tech Border -->
+  <rect x="10" y="10" width="220" height="320" fill="none" rx="6" stroke="#00ccff" stroke-width="0.75" opacity="0.4" stroke-dasharray="12 6 3 6" />
+
+  <!-- Corner Bracket Accents -->
+  <path d="M 16 26 L 16 16 L 26 16" fill="none" stroke="#00ccff" stroke-width="1.5" stroke-linecap="round" />
+  <path d="M 224 26 L 224 16 L 214 16" fill="none" stroke="#00ccff" stroke-width="1.5" stroke-linecap="round" />
+  <path d="M 16 314 L 16 324 L 26 324" fill="none" stroke="#00ccff" stroke-width="1.5" stroke-linecap="round" />
+  <path d="M 224 314 L 224 324 L 214 324" fill="none" stroke="#00ccff" stroke-width="1.5" stroke-linecap="round" />
+
+  <!-- Background Actuarial Grid & Star Map details -->
+  <g opacity="0.12">
+    <!-- Concentric Circles -->
+    <circle cx="120" cy="155" r="45" fill="none" stroke="#00ccff" stroke-width="0.5" stroke-dasharray="4 4" />
+    <circle cx="120" cy="155" r="65" fill="none" stroke="#00ccff" stroke-width="0.5" />
+    <circle cx="120" cy="155" r="80" fill="none" stroke="#00ccff" stroke-width="0.5" stroke-dasharray="1 5" />
+    
+    <!-- Crosshairs -->
+    <line x1="120" y1="65" x2="120" y2="245" stroke="#00ccff" stroke-width="0.75" />
+    <line x1="30" y1="155" x2="210" y2="155" stroke="#00ccff" stroke-width="0.75" />
+    
+    <!-- Diagonal ticks -->
+    <line x1="75" y1="110" x2="165" y2="200" stroke="#00ccff" stroke-width="0.5" stroke-dasharray="2 2" />
+    <line x1="75" y1="200" x2="165" y2="110" stroke="#00ccff" stroke-width="0.5" stroke-dasharray="2 2" />
+
+    <!-- Tiny constellation dots -->
+    <circle cx="65" cy="100" r="1.5" fill="#00ccff" />
+    <circle cx="175" cy="210" r="1.5" fill="#00ccff" />
+    <circle cx="70" cy="200" r="1" fill="#00ccff" />
+    <circle cx="170" cy="105" r="1" fill="#00ccff" />
+    <line x1="65" y1="100" x2="80" y2="85" stroke="#00ccff" stroke-width="0.5" />
+    <line x1="175" y1="210" x2="190" y2="225" stroke="#00ccff" stroke-width="0.5" />
+  </g>
+
+  <!-- Top Ribbon Details -->
+  <text x="120" y="32" text-anchor="middle" 
+        font-family="'Courier New', Courier, monospace" 
+        font-size="7" 
+        font-weight="bold" 
+        letter-spacing="2" 
+        fill="#ffcc44" 
+        opacity="0.8">SECURED POLICY DOCUMENT</text>
+  <line x1="70" y1="38" x2="170" y2="38" stroke="#ffcc44" stroke-width="0.5" opacity="0.3" />
+
+  <!-- Center Motif: Simplified Galaxy Logo & Shield -->
+  <g transform="translate(120, 155) scale(1.5)">
+    <!-- Cyan Galaxy Arms -->
+    <!-- Arm 1 -->
+    <path d="M 0 0 Q 15 -10 10 -25 Q 0 -30 -12 -18 Q -24 -6 -15 15 Q -6 36 20 25 Q 35 15 30 0" 
+          fill="none" stroke="#00ccff" stroke-width="2.5" stroke-linecap="round" />
+    <!-- Arm 2 -->
+    <path d="M 0 0 Q -15 10 -10 25 Q 0 30 12 18 Q 24 6 15 -15 Q 6 -36 -20 -25 Q -35 -15 -30 0" 
+          fill="none" stroke="#00ccff" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
+
+    <!-- Center Shield (Gold with Bevel) -->
+    <g>
+      <!-- Shadow -->
+      <path d="M 0 -11 L 11 -8 V 2 C 11 8.5, 0 13, 0 13 C 0 13, -11 8.5, -11 2 V -8 Z" 
+            fill="#ffcc44" opacity="0.2" filter="blur(1px)" />
+      <!-- Left (Base Gold) -->
+      <path d="M 0 -10 L -10 -7 V 2 C -10 8, 0 12, 0 12 Z" 
+            fill="#ffcc44" stroke="#0a0a2a" stroke-width="1" stroke-linejoin="round" />
+      <!-- Right (Shading Gold) -->
+      <path d="M 0 -10 L 10 -7 V 2 C 10 8, 0 12, 0 12 Z" 
+            fill="#e6b83c" stroke="#0a0a2a" stroke-width="1" stroke-linejoin="round" />
+      <!-- Highlight -->
+      <line x1="-6" y1="-5" x2="-6" y2="1" stroke="#ffffff" stroke-width="0.75" opacity="0.5" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- Bottom Branding / Text -->
+  <!-- Main Company Name -->
+  <text x="120" y="285" text-anchor="middle" 
+        font-family="'Trebuchet MS', 'Helvetica Neue', Arial, sans-serif" 
+        font-size="10" 
+        font-weight="bold" 
+        letter-spacing="2.5" 
+        fill="#b8cce8">MUTUAL OF ANDROMEDA</text>
+
+  <!-- Subtitle -->
+  <text x="120" y="298" text-anchor="middle" 
+        font-family="'Courier New', Courier, monospace" 
+        font-size="6.5" 
+        font-weight="bold" 
+        letter-spacing="1.5" 
+        fill="#00ccff" 
+        opacity="0.75">INSURANCE &amp; ACTUARIAL SERVICES</text>
+
+  <!-- Underwriting code details -->
+  <text x="22" y="321" 
+        font-family="'Courier New', Courier, monospace" 
+        font-size="5.5" 
+        fill="#00ccff" 
+        opacity="0.4">VER: 2387.9</text>
+
+  <text x="218" y="321" text-anchor="end" 
+        font-family="'Courier New', Courier, monospace" 
+        font-size="5.5" 
+        fill="#00ccff" 
+        opacity="0.4">CLASS: A-REINS</text>
+</svg>

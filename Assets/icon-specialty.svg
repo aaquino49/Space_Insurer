@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%">
+  <!-- Icon Background -->
+  <rect width="48" height="48" fill="#080820" rx="10" stroke="#bb66ff" stroke-width="1" opacity="0.3" />
+  <rect width="48" height="48" fill="none" rx="10" stroke="#bb66ff" stroke-width="0.5" opacity="0.1" />
+
+  <!-- Background stars -->
+  <circle cx="9" cy="12" r="1" fill="#bb66ff" opacity="0.6" />
+  <polygon points="38,11 39,12 38,13 37,12" fill="#bb66ff" opacity="0.8" />
+  <circle cx="39" cy="28" r="0.75" fill="#bb66ff" opacity="0.5" />
+
+  <!-- Abduction / Mystery Beam (Trapezoid) -->
+  <polygon points="20,17 12,43 36,43 28,17" fill="#bb66ff" fill-opacity="0.12" stroke="#bb66ff" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.75" />
+
+  <!-- Question Mark inside the Beam -->
+  <path d="M 22 25 C 22 22.5, 26 22.5, 26 25 C 26 27, 24 27.5, 24 29.5" fill="none" stroke="#bb66ff" stroke-width="2" stroke-linecap="round" />
+  <circle cx="24" cy="33.5" r="1.5" fill="#bb66ff" />
+
+  <!-- Flying Saucer (UFO) -->
+  <!-- Glass Dome -->
+  <path d="M 18.5 13.5 C 18.5 9, 29.5 9, 29.5 13.5 Z" fill="#bb66ff" fill-opacity="0.25" stroke="#bb66ff" stroke-width="1.5" />
+  <!-- Tiny Alien Silhouette -->
+  <circle cx="24" cy="12.5" r="1.5" fill="#bb66ff" />
+
+  <!-- Saucer Disk Body -->
+  <ellipse cx="24" cy="15" rx="13.5" ry="3.5" fill="#080820" stroke="#bb66ff" stroke-width="2" />
+
+  <!-- Tiny Glowing Lights under saucer -->
+  <circle cx="15.5" cy="15.5" r="0.75" fill="#ffffff" />
+  <circle cx="19.5" cy="16.5" r="0.75" fill="#bb66ff" />
+  <circle cx="24" cy="17" r="0.75" fill="#ffffff" />
+  <circle cx="28.5" cy="16.5" r="0.75" fill="#bb66ff" />
+  <circle cx="32.5" cy="15.5" r="0.75" fill="#ffffff" />
+</svg>

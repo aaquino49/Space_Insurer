@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 60" width="100%" height="100%">
+  <defs>
+    <!-- Green linear gradient -->
+    <linearGradient id="green-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#001100" />
+      <stop offset="50%" stop-color="#001a00" />
+      <stop offset="100%" stop-color="#002b00" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background with green gradient -->
+  <rect width="600" height="60" fill="url(#green-grad)" />
+
+  <!-- Top and Bottom glowing borders -->
+  <line x1="0" y1="0.75" x2="600" y2="0.75" stroke="#00e87a" stroke-width="1.5" opacity="0.9" />
+  <line x1="0" y1="59.25" x2="600" y2="59.25" stroke="#00e87a" stroke-width="1.5" opacity="0.9" />
+
+  <!-- Left Side Decorative Stars -->
+  <polygon points="40,24 42,25 40,26 38,25" fill="#ffcc44" opacity="0.7" />
+  <circle cx="55" cy="42" r="1" fill="#00e87a" opacity="0.6" />
+  <polygon points="70,18 71.5,19.5 70,21 68.5,19.5" fill="#ffcc44" opacity="0.8" />
+  <circle cx="85" cy="32" r="1.5" fill="#ffcc44" opacity="0.5" />
+
+  <!-- Center Text -->
+  <text x="300" y="36" font-family="'Courier New', Courier, monospace" font-weight="900" font-size="18" fill="#ffcc44" letter-spacing="2" text-anchor="middle">🚀 IPO SUCCESSFUL — MUTUAL OF ANDROMEDA</text>
+
+  <!-- Right Side Decorative Stars -->
+  <polygon points="560,24 562,25 560,26 558,25" fill="#ffcc44" opacity="0.7" />
+  <circle cx="545" cy="42" r="1" fill="#00e87a" opacity="0.6" />
+  <polygon points="530,18 531.5,19.5 530,21 528.5,19.5" fill="#ffcc44" opacity="0.8" />
+  <circle cx="515" cy="32" r="1.5" fill="#ffcc44" opacity="0.5" />
+</svg>

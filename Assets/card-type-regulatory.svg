@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="100%" height="100%">
+  <!-- Background -->
+  <rect width="36" height="36" fill="#080820" rx="8" stroke="#bb66ff" stroke-width="1" opacity="0.3" />
+
+  <!-- Clipboard Board -->
+  <rect x="9" y="8" width="16" height="21" rx="2" fill="none" stroke="#bb66ff" stroke-width="1.8" />
+  
+  <!-- Clip at Top -->
+  <path d="M 14 8 V 6 C 14 5, 22 5, 22 6 V 8 Z" fill="#bb66ff" stroke="#080820" stroke-width="0.5" />
+
+  <!-- Document Paper Sheet inside board -->
+  <rect x="11.5" y="11.5" width="11" height="15" rx="0.5" fill="#080820" stroke="#bb66ff" stroke-width="1" stroke-opacity="0.6" />
+  
+  <!-- Document text line representations -->
+  <line x1="14" y1="15" x2="20" y2="15" stroke="#bb66ff" stroke-width="0.8" stroke-linecap="round" opacity="0.6" />
+  <line x1="14" y1="18" x2="19" y2="18" stroke="#bb66ff" stroke-width="0.8" stroke-linecap="round" opacity="0.6" />
+  <line x1="14" y1="21" x2="17" y2="21" stroke="#bb66ff" stroke-width="0.8" stroke-linecap="round" opacity="0.4" />
+
+  <!-- Magnifying Glass Overlay (Regulatory inspection vibe) -->
+  <g>
+    <!-- Handle Shadow -->
+    <line x1="25.5" y1="25.5" x2="31" y2="31" stroke="#080820" stroke-width="4.5" stroke-linecap="round" />
+    <!-- Handle -->
+    <line x1="25.5" y1="25.5" x2="31.5" y2="31.5" stroke="#bb66ff" stroke-width="2.5" stroke-linecap="round" />
+    <circle cx="28.5" cy="28.5" r="1" fill="#ffffff" opacity="0.8" />
+
+    <!-- Lens Rim Shadow -->
+    <circle cx="22" cy="22" r="5.5" fill="#080820" />
+    <!-- Lens Rim -->
+    <circle cx="22" cy="22" r="5" fill="none" stroke="#bb66ff" stroke-width="1.8" />
+    <!-- Lens Glass Highlight -->
+    <path d="M 19 22 A 3 3 0 0 1 22 19" fill="none" stroke="#ffffff" stroke-width="0.75" stroke-linecap="round" opacity="0.7" />
+  </g>
+</svg>
