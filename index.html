@@ -576,6 +576,17 @@ body {
 
 .offer-actions { display:flex; gap:8px; }
 
+.margin-indicator {
+  font-size: 11px;
+  margin-top: 6px;
+  padding: 5px 9px;
+  background: var(--panel-alt);
+  border-radius: 3px;
+  border-left: 2px solid currentColor;
+  line-height: 1.4;
+}
+.margin-indicator em { font-style: italic; opacity: 0.8; }
+
 /* ============================================================
    EVENT CARDS
    ============================================================ */
@@ -3438,6 +3449,30 @@ function renderPhasePanel() {
               <input type="range" class="offer-slider" min="70" max="130" step="5" value="${sliderVal}" data-slider-offer="${o.id}">
               <span class="offer-premium-display" id="prem-${o.id}" style="color:${pColor}">¢${fmt(adjPrem)}/qtr</span>
             </div>
+            ${(() => {
+              // Margin indicator — rough range for all, exact for Actuarial holders
+              if (hasActuarial2) {
+                const avgClaim = (o.claimRange[0] + o.claimRange[1]) / 2;
+                const expLoss  = Math.round(o.claimChance * avgClaim);
+                const margin   = adjPrem - expLoss;
+                const lr       = Math.round(expLoss / adjPrem * 100);
+                const mc       = lr < 65 ? 'var(--green)' : lr < 85 ? 'var(--amber)' : 'var(--red)';
+                const ml       = lr < 65 ? 'profitable' : lr < 85 ? 'marginal' : 'likely a loss';
+                return `<div class="margin-indicator" id="margin-${o.id}" style="color:${mc}">
+                  📊 Expected margin: ${margin >= 0 ? '+' : '-'}¢${fmt(Math.abs(margin))}/qtr &nbsp;·&nbsp; ${lr}% loss ratio &nbsp;·&nbsp; <em>${ml}</em>
+                </div>`;
+              } else {
+                const lo = Math.round(adjPrem - o.claimChance * o.claimRange[1]);
+                const hi = Math.round(adjPrem - o.claimChance * o.claimRange[0]);
+                const mc = (lo > 0 && hi > 0) ? 'var(--green)' : (lo < 0 && hi < 0) ? 'var(--red)' : 'var(--amber)';
+                const ml = (lo > 0 && hi > 0) ? 'likely profitable' : (lo < 0 && hi < 0) ? 'likely a loss' : 'uncertain';
+                const fmtBound = n => `${n >= 0 ? '+' : '-'}¢${fmt(Math.abs(n))}`;
+                return `<div class="margin-indicator" id="margin-${o.id}" style="color:${mc}">
+                  📊 Rough margin: ${fmtBound(lo)} to ${fmtBound(hi)}/qtr &nbsp;·&nbsp; <em>${ml}</em>
+                  <span style="font-size:9px;opacity:0.6"> — hire Actuarial for exact figures</span>
+                </div>`;
+              }
+            })()}
             <div class="offer-actions">
               <button class="btn btn-success btn-sm" data-action="sign-client" data-value="${o.id}">✓ Sign Client</button>
               <button class="btn btn-ghost btn-sm" data-action="decline-offer" data-value="${o.id}">✗ Pass</button>
@@ -3905,7 +3940,7 @@ document.addEventListener('click', e => {
   handleAction(el.dataset.action, el.dataset.value, el.dataset);
 });
 
-// Slider: update premium display without a full setState (perf)
+// Slider: update premium display + margin indicator without a full setState (perf)
 document.addEventListener('input', e => {
   const slider = e.target;
   if (!slider.dataset.sliderOffer) return;
@@ -3915,11 +3950,36 @@ document.addEventListener('input', e => {
 
   const offer = (game.pendingOffers || []).find(o => o.id === offerId);
   if (!offer) return;
-  const adj    = Math.round(offer.basePremium * mult);
-  const label  = document.getElementById(`prem-${offerId}`);
+  const adj = Math.round(offer.basePremium * mult);
+
+  // Premium label
+  const label = document.getElementById(`prem-${offerId}`);
   if (label) {
     label.textContent = `¢${adj.toLocaleString()}/qtr`;
     label.style.color = mult > 1.12 ? 'var(--amber)' : mult < 0.88 ? 'var(--red)' : 'var(--green)';
+  }
+
+  // Margin indicator — live update as slider moves
+  const marginEl = document.getElementById(`margin-${offerId}`);
+  if (!marginEl) return;
+  const hasAct = hasStaff('actuarial') || hasUnlock('actuarial-intern') || !!(game.flags && game.flags.freeActuarial);
+  if (hasAct) {
+    const avgClaim = (offer.claimRange[0] + offer.claimRange[1]) / 2;
+    const expLoss  = Math.round(offer.claimChance * avgClaim);
+    const margin   = adj - expLoss;
+    const lr       = Math.round(expLoss / adj * 100);
+    const mc       = lr < 65 ? 'var(--green)' : lr < 85 ? 'var(--amber)' : 'var(--red)';
+    const ml       = lr < 65 ? 'profitable' : lr < 85 ? 'marginal' : 'likely a loss';
+    marginEl.style.color = mc;
+    marginEl.innerHTML   = `📊 Expected margin: ${margin >= 0 ? '+' : '-'}¢${Math.abs(margin).toLocaleString()}/qtr &nbsp;·&nbsp; ${lr}% loss ratio &nbsp;·&nbsp; <em>${ml}</em>`;
+  } else {
+    const lo = Math.round(adj - offer.claimChance * offer.claimRange[1]);
+    const hi = Math.round(adj - offer.claimChance * offer.claimRange[0]);
+    const mc = (lo > 0 && hi > 0) ? 'var(--green)' : (lo < 0 && hi < 0) ? 'var(--red)' : 'var(--amber)';
+    const ml = (lo > 0 && hi > 0) ? 'likely profitable' : (lo < 0 && hi < 0) ? 'likely a loss' : 'uncertain';
+    const fb = n => `${n >= 0 ? '+' : '-'}¢${Math.abs(n).toLocaleString()}`;
+    marginEl.style.color = mc;
+    marginEl.innerHTML   = `📊 Rough margin: ${fb(lo)} to ${fb(hi)}/qtr &nbsp;·&nbsp; <em>${ml}</em><span style="font-size:9px;opacity:0.6"> — hire Actuarial for exact figures</span>`;
   }
 });
 
