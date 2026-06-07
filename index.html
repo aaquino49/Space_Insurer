@@ -1259,58 +1259,70 @@ const LINE_META = {
    ============================================================ */
 const CLIENT_ARCHETYPES = [
   // ── COLONIZATION ──────────────────────────────────────────
+  // LOW: ~32% LR at base — reliable backbone income
   { id:'nova-prime',      line:'colonization', name:'Nova Prime Colony',
-    basePremium:300, maxPayout:8000,  claimChance:0.12, claimRange:[500,2500],   terms:4, riskLevel:'LOW',
+    basePremium:380, maxPayout:6000,  claimChance:0.12, claimRange:[400,1600],  terms:4, riskLevel:'LOW',
     desc:'A scrappy new colony on a Class-M world. Reasonable safety record.',
     quip:'"They named a crater after their CEO. Hubris."' },
+  // MEDIUM: ~66% LR at base — marginal; profitable at max slider
   { id:'arrancross',      line:'colonization', name:'Arrancross Settlement',
-    basePremium:500, maxPayout:15000, claimChance:0.25, claimRange:[2000,8000],  terms:3, riskLevel:'MEDIUM',
+    basePremium:580, maxPayout:11000, claimChance:0.22, claimRange:[700,2800],  terms:3, riskLevel:'MEDIUM',
     desc:'Desert world, deep drilling ops. Sandworm territory confirmed.',
     quip:'"Policy excludes acts of giant sandworm. They didn\'t ask."' },
+  // HIGH: ~91% LR at base (~70% at max slider) — high variance, needs reinsurance
   { id:'vega-7',          line:'colonization', name:'Vega-7 Terraforming Op',
-    basePremium:750, maxPayout:22000, claimChance:0.38, claimRange:[5000,15000], terms:2, riskLevel:'HIGH',
+    basePremium:920, maxPayout:17000, claimChance:0.28, claimRange:[1400,4600], terms:2, riskLevel:'HIGH',
     desc:'Experimental atmospheric conversion. Oxygen levels: fluctuating.',
     quip:'"The air is \'mostly\' breathable. Mostly."' },
 
   // ── ORBITAL & STATIONS ────────────────────────────────────
+  // LOW: ~30% LR
   { id:'station-aurora',  line:'orbital', name:'Station Aurora',
-    basePremium:400, maxPayout:12000, claimChance:0.10, claimRange:[800,3500],   terms:4, riskLevel:'LOW',
+    basePremium:420, maxPayout:9000,  claimChance:0.10, claimRange:[500,2200],  terms:4, riskLevel:'LOW',
     desc:'Commercial habitation ring. Excellent maintenance record.',
     quip:'"The onboard AI is friendly. Definitely not planning anything."' },
+  // MEDIUM: ~69% LR
   { id:'vertex-platform', line:'orbital', name:'Vertex Deep Platform',
-    basePremium:600, maxPayout:18000, claimChance:0.22, claimRange:[3000,10000], terms:3, riskLevel:'MEDIUM',
+    basePremium:650, maxPayout:14000, claimChance:0.20, claimRange:[900,3600],  terms:3, riskLevel:'MEDIUM',
     desc:'Research station in an unstable gravitational rift zone.',
     quip:'"Three near-misses last year. They call them learning opportunities."' },
+  // HIGH: ~87% LR
   { id:'galactica-ring',  line:'orbital', name:'Galactica Habitat Ring',
-    basePremium:950, maxPayout:32000, claimChance:0.32, claimRange:[8000,20000], terms:2, riskLevel:'HIGH',
+    basePremium:1050, maxPayout:22000, claimChance:0.27, claimRange:[1600,5200], terms:2, riskLevel:'HIGH',
     desc:'4,000-resident mega-ring. Highly complex interlocked systems.',
     quip:'"The service robots formed a book club. This is concerning."' },
 
   // ── SHIPPING & FREIGHT ────────────────────────────────────
+  // LOW: ~33% LR
   { id:'sulaco-express',  line:'shipping', name:'Sulaco Express Co.',
-    basePremium:350, maxPayout:9000,  claimChance:0.15, claimRange:[1000,4000],  terms:4, riskLevel:'LOW',
+    basePremium:400, maxPayout:7000,  claimChance:0.13, claimRange:[400,1600],  terms:4, riskLevel:'LOW',
     desc:'Standard cargo on established inner-system routes.',
     quip:'"They lost a shipment once. The shipment walked back."' },
+  // MEDIUM: ~68% LR
   { id:'rim-runners',     line:'shipping', name:'Rim Runners Freight',
-    basePremium:550, maxPayout:16000, claimChance:0.28, claimRange:[2500,9000],  terms:3, riskLevel:'MEDIUM',
+    basePremium:620, maxPayout:12000, claimChance:0.24, claimRange:[700,2800],  terms:3, riskLevel:'MEDIUM',
     desc:'Outer-rim hauls. Raiders, wormholes, and suspicious manifests.',
     quip:'"Captain insists the cargo is \'probably just eggs.\'"' },
+  // HIGH: ~89% LR
   { id:'hyperion-transit',line:'shipping', name:'Hyperion FTL Transit',
-    basePremium:850, maxPayout:26000, claimChance:0.40, claimRange:[6000,18000], terms:2, riskLevel:'HIGH',
+    basePremium:980, maxPayout:18000, claimChance:0.30, claimRange:[1400,4400], terms:2, riskLevel:'HIGH',
     desc:'Experimental FTL freight. Ships occasionally misplace themselves in time.',
     quip:'"Three ships filed claims from the future. Two from the past."' },
 
   // ── SPECIALTY & WEIRD ─────────────────────────────────────
+  // MEDIUM: ~70% LR
   { id:'nostromo-bio',    line:'specialty', name:'Nostromo BioTech Ltd',
-    basePremium:480, maxPayout:14000, claimChance:0.20, claimRange:[2000,7000],  terms:3, riskLevel:'MEDIUM',
+    basePremium:570, maxPayout:11000, claimChance:0.20, claimRange:[800,3200],  terms:3, riskLevel:'MEDIUM',
     desc:'Pharma research. Exotic biology. "Contained" lab specimens.',
     quip:'"Their liability waiver is 900 pages. We read some of them."' },
+  // HIGH: ~93% LR
   { id:'weyland-cryo',    line:'specialty', name:'Weyland CryoTours Inc.',
-    basePremium:700, maxPayout:21000, claimChance:0.34, claimRange:[4000,13000], terms:2, riskLevel:'HIGH',
+    basePremium:900, maxPayout:16000, claimChance:0.28, claimRange:[1400,4600], terms:2, riskLevel:'HIGH',
     desc:'Cryo-tourism packages to exotic/dangerous locales. Very creative waivers.',
     quip:'"Mortality rate: statistically within acceptable parameters."' },
+  // MEDIUM: ~69% LR
   { id:'district-omega',  line:'specialty', name:'District Omega Refuge',
-    basePremium:560, maxPayout:19000, claimChance:0.26, claimRange:[3000,12000], terms:3, riskLevel:'MEDIUM',
+    basePremium:640, maxPayout:13000, claimChance:0.22, claimRange:[800,3200],  terms:3, riskLevel:'MEDIUM',
     desc:'Alien refugee housing complex. Complex claims, surprisingly good tenants.',
     quip:'"The cat food economy is surprisingly liquid."' },
 ];
@@ -1528,15 +1540,15 @@ function hasUnlock(id) {
 const STAFF_DEPTS = [
   { id:'underwriting', icon:'📊', name:'Underwriting Dept',
     desc:'Pulls better clients. +1 offer per portfolio phase.',
-    cost:2000, upkeep:200,
+    cost:1500, upkeep:150,
     effect:'Adds one extra client offer each quarter.' },
   { id:'claims',       icon:'🔍', name:'Claims Department',
-    desc:'Experienced adjusters. Reduces all claim payouts by 20%.',
-    cost:1500, upkeep:150,
-    effect:'Claim amounts reduced 20% before deduction.' },
+    desc:'Experienced adjusters. Reduces all claim payouts by 25%.',
+    cost:1200, upkeep:100,
+    effect:'Claim amounts reduced 25% before deduction.' },
   { id:'legal',        icon:'⚖️', name:'Legal Department',
     desc:'Expert litigators. Denying claims costs 50% less Heat.',
-    cost:2500, upkeep:300,
+    cost:2000, upkeep:200,
     effect:'Heat from denied claims halved.' },
   { id:'pr',           icon:'📣', name:'PR Department',
     desc:'Spin doctors on retainer. Recover +5 reputation per quarter.',
@@ -1544,7 +1556,7 @@ const STAFF_DEPTS = [
     effect:'+5 reputation each resolution phase.' },
   { id:'actuarial',    icon:'🧮', name:'Actuarial Division',
     desc:'Risk nerds with spreadsheets. Reveals exact claim probability on offer cards.',
-    cost:1800, upkeep:200,
+    cost:1200, upkeep:150,
     effect:'Shows precise claim chance and expected cost on all client offers.' },
 ];
 
@@ -3074,7 +3086,7 @@ function runResolution() {
   const survivingPolicies = [];
   const expiredIds        = [];
   const detail            = [];
-  const claimsReduction   = hasStaff('claims') ? 0.80 : 1.0;
+  const claimsReduction   = hasStaff('claims') ? 0.75 : 1.0;
   const diff              = difficultyScale(game.turn);  // M9: turn-based escalation
 
   for (const p of game.policies) {
