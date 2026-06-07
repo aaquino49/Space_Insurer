@@ -1998,6 +1998,62 @@ const _sliderMult = {};  // offerId → multiplier (default 1.0)
 // Active tab: 'offers' | 'staff' | 'portfolio' | 'log'
 let _activeTab = 'offers';
 
+/* ============================================================
+   SOUND ENGINE — Web Audio API, procedurally generated
+   ============================================================ */
+let _sfxCtx = null;
+function _ctx() {
+  if (!_sfxCtx) _sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_sfxCtx.state === 'suspended') _sfxCtx.resume();
+  return _sfxCtx;
+}
+
+function playSound(type) {
+  try {
+    const ctx = _ctx();
+    const now = ctx.currentTime;
+
+    // Helper: one oscillator burst
+    const burst = (freq, dur, vol=0.09, shape='sine', freqEnd=null) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = shape;
+      o.frequency.setValueAtTime(freq, now);
+      if (freqEnd !== null) o.frequency.linearRampToValueAtTime(freqEnd, now + dur);
+      g.gain.setValueAtTime(vol, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      o.start(now); o.stop(now + dur);
+    };
+
+    // Helper: delayed burst
+    const burstAt = (t, freq, dur, vol=0.09, shape='sine') => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = shape;
+      o.frequency.setValueAtTime(freq, now + t);
+      g.gain.setValueAtTime(0, now);
+      g.gain.setValueAtTime(vol, now + t);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + t + dur);
+      o.start(now + t); o.stop(now + t + dur);
+    };
+
+    switch (type) {
+      case 'click':   burst(700, 0.07, 0.06); break;
+      case 'tab':     burst(550, 0.06, 0.05); break;
+      case 'pass':    burst(380, 0.14, 0.07, 'sine', 220); break;
+      case 'choice':  burst(420, 0.10, 0.08, 'triangle'); break;
+      case 'sign':    burst(523, 0.08, 0.10); burstAt(0.09, 784, 0.18, 0.10); break;
+      case 'hire':    burst(440, 0.08, 0.09); burstAt(0.09, 660, 0.20, 0.09); break;
+      case 'advance': burst(494, 0.08, 0.09); burstAt(0.09, 659, 0.22, 0.09); break;
+      case 'unlock':  burst(523,0.07,0.09); burstAt(0.08,659,0.07,0.09); burstAt(0.16,784,0.25,0.10); break;
+      case 'win':     [0, 0.14, 0.28, 0.45].forEach((t,i) => burstAt(t,[523,659,784,1047][i],0.25,0.11)); break;
+      case 'bust':    burst(280, 0.55, 0.09, 'sawtooth', 90); break;
+    }
+  } catch (_) { /* audio unavailable */ }
+}
+
 // Compact number formatter for HUD (e.g. 10000 → ¢10k)
 function fmtK(n) {
   const abs = Math.abs(Math.round(n));
@@ -2307,12 +2363,14 @@ function endTurn() {
   if (game.capital <= 0) {
     game = { ...game, isGameOver:true, isVictory:false, gameOverReason:'bankrupt' };
     saveRunHistory();
+    playSound('bust');
     setState({});
     return;
   }
   if (game.reputation <= 0) {
     game = { ...game, isGameOver:true, isVictory:false, gameOverReason:'license' };
     saveRunHistory();
+    playSound('bust');
     setState({});
     return;
   }
@@ -2322,6 +2380,7 @@ function endTurn() {
     const fullIPO = game.capital >= BALANCE.winCapital;
     game = { ...game, isGameOver:true, isVictory:true, gameOverReason: fullIPO ? 'ipo' : 'ipo-narrow' };
     saveRunHistory();
+    playSound('win');
     setState({});
     return;
   }
@@ -3049,12 +3108,14 @@ function handleAction(action, value, dataset) {
   dataset = dataset || {};
   switch (action) {
     case 'switch-tab':
+      playSound('tab');
       _activeTab = value;
       renderMain();
       renderTabBar();
       break;
 
     case 'advance-phase':
+      playSound('advance');
       _activeTab = 'offers';
       advancePhase();
       break;
@@ -3066,6 +3127,7 @@ function handleAction(action, value, dataset) {
       break;
 
     case 'sign-client': {
+      playSound('sign');
       const offerId = value;
       const offer   = (game.pendingOffers || []).find(o => o.id === offerId);
       if (!offer) break;
@@ -3098,17 +3160,20 @@ function handleAction(action, value, dataset) {
     }
 
     case 'decline-offer': {
+      playSound('pass');
       delete _sliderMult[value];
       setState({ pendingOffers: (game.pendingOffers || []).filter(o => o.id !== value) });
       break;
     }
 
     case 'resolve-choice': {
+      playSound('choice');
       resolveChoice(dataset.cardId, parseInt(dataset.choiceIdx, 10));
       break;
     }
 
     case 'hire-dept': {
+      playSound('hire');
       const dept = STAFF_DEPTS.find(d => d.id === value);
       if (!dept || game.capital < dept.cost) break;
       if ((game.staff || []).includes(value)) break;
@@ -3121,6 +3186,7 @@ function handleAction(action, value, dataset) {
     }
 
     case 'fire-dept': {
+      playSound('pass');
       const dept2 = STAFF_DEPTS.find(d => d.id === value);
       if (!dept2) break;
       const refund = Math.round(dept2.cost * 0.5);
@@ -3134,6 +3200,7 @@ function handleAction(action, value, dataset) {
 
     // M10: Settings & tutorial actions
     case 'open-settings':
+      playSound('click');
       _settingsVisible = true; _tutVisible = false; renderSettings(); break;
     case 'close-settings':
       _settingsVisible = false; renderSettings(); break;
@@ -3208,6 +3275,7 @@ function handleAction(action, value, dataset) {
     case 'buy-unlock': {
       const unlockDef = UNLOCKS.find(u => u.id === value);
       if (!unlockDef || meta.unlocks.includes(value) || meta.industrycred < unlockDef.cost) break;
+      playSound('unlock');
       meta.industrycred -= unlockDef.cost;
       meta.unlocks.push(value);
       saveMeta();
