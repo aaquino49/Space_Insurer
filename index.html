@@ -1,1193 +1,285 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Space Insurer — Mutual of Andromeda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    DESIGN TOKENS
    ============================================================ */
 :root {
-  --void:         #03030f;
-  --panel:        #080820;
-  --panel-alt:    #0b0b28;
-  --panel-bright: #10103a;
-  --border:       #1a1a55;
-  --border-glow:  #2828aa;
-  --text:         #dce8f8;
-  --text-dim:     #7a9ab8;
-  --text-label:   #99bbcc;
-  --green:        #00e87a;
-  --green-dim:    #006640;
-  --amber:        #ffaa00;
-  --amber-dim:    #664400;
-  --red:          #ff4466;
-  --red-dim:      #660022;
-  --purple:       #bb66ff;
-  --cyan:         #00ccff;
-  --gold:         #ffcc44;
-  --font:         'Courier New', Courier, monospace;
-  --radius:       4px;
-  --hud-h:        68px;
-  --foot-h:       52px;
-  --sidebar-w:    270px;
-  --gap:          10px;
+  --bg:        #07111e;
+  --panel:     #0d1e32;
+  --card:      #1c3553;
+  --border:    rgba(255,255,255,0.10);
+  --orange:    #e8622a;
+  --yellow:    #f5c518;
+  --red:       #d63031;
+  --green:     #1f9e56;
+  --cyan:      #3bbfda;
+  --dim:       #6a8aaa;
+  --bright:    #dceaf8;
+  --amber:     #f5a623;
+  --purple:    #bb66ff;
+  --void:      #07111e;
+  --text:      #dceaf8;
+  --text-dim:  #6a8aaa;
+  --text-label:#6a8aaa;
+  --panel-alt: #0d1e32;
+  --panel-bright:#162840;
+  --border-glow:rgba(232,98,42,0.4);
+  --green-dim: #0d3a1e;
+  --amber-dim: #3a2000;
+  --red-dim:   #3a0a0a;
+  --gold:      #f5c518;
+  --font:      'Space Grotesk', system-ui, sans-serif;
+  --mono:      'DM Mono', 'Courier New', monospace;
+  --bebas:     'Bebas Neue', impact, sans-serif;
+  --radius:    10px;
 }
-
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-
+html { background: var(--bg); overflow-x: hidden; overflow-y: auto; min-height: 100dvh; }
 body {
-  background: var(--void);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 13px;
-  line-height: 1.5;
-  display: grid;
-  grid-template-rows: var(--hud-h) 1fr var(--foot-h);
-  grid-template-areas: "hud" "main" "foot";
+  background: var(--bg); color: var(--bright);
+  font-family: var(--font); font-size: 13px; line-height: 1.5;
+  display: flex; flex-direction: column; min-height: 100dvh;
+  max-width: 480px; margin: 0 auto;
 }
-
-/* ============================================================
-   HUD / HEADER
-   ============================================================ */
+/* HUD */
 #hud {
-  grid-area: hud;
-  background: var(--panel);
-  border-bottom: 2px solid var(--border-glow);
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  gap: 12px;
-  box-shadow: 0 2px 24px rgba(40,40,170,0.35);
-  position: relative;
-  z-index: 10;
-}
-
-.hud-logo {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(0,204,255,0.25));
-}
-
-.hud-sep {
-  width: 1px;
-  height: 38px;
-  background: var(--border);
-  flex-shrink: 0;
-}
-
-.hud-period {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  min-width: 76px;
-}
-.hud-period-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-.hud-period-val   { font-size: 16px; color: var(--amber); font-weight: bold; }
-
-.hud-progress {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  min-width: 60px;
-}
-.hud-prog-label { font-size: 9px; color: var(--text-dim); letter-spacing: 1px; }
-.hud-prog-track {
-  width: 54px;
-  height: 6px;
-  background: var(--panel-bright);
-  border-radius: 3px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-.hud-prog-fill {
-  height: 100%;
-  background: var(--amber);
-  border-radius: 3px;
-  transition: width 0.4s ease;
-}
-
-.hud-stats {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* Stat chip (numeric) */
-.stat-chip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 68px;
-  flex-shrink: 0;
-}
-.stat-chip-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-chip-val   { font-size: 15px; font-weight: bold; }
-
-/* Bar stat (reputation, heat) */
-.bar-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-  min-width: 76px;
-}
-.bar-stat-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
-.bar-stat-num   { font-size: 10px; }
-.bar-track {
-  width: 68px;
-  height: 7px;
-  border-radius: 3px;
-  overflow: hidden;
-}
-.bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.4s ease, background 0.4s ease;
-}
-.bar-rep-track  { background: #001a22; border: 1px solid #003344; }
-.bar-heat-track { background: #1a0005; border: 1px solid #330011; }
-
-/* Solvency badge */
-.solvency-badge {
-  padding: 4px 10px;
-  border-radius: 3px;
-  font-weight: bold;
-  font-size: 13px;
-  letter-spacing: 1.5px;
-  flex-shrink: 0;
-}
-.sol-green  { background:#002a1a; color:var(--green);  border:1px solid var(--green-dim); }
-.sol-amber  { background:#2a1a00; color:var(--amber);  border:1px solid var(--amber-dim); }
-.sol-orange { background:#2a0d00; color:#ff8800;       border:1px solid #663300; }
-.sol-red    { background:#2a0011; color:var(--red);    border:1px solid var(--red-dim); }
-
-.hud-btn-row { display:flex; gap:6px; flex-shrink:0; }
-
-/* ============================================================
-   MAIN LAYOUT
-   ============================================================ */
-#main {
-  grid-area: main;
-  display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr;
-  overflow: hidden;
-}
-
-/* ============================================================
-   PORTFOLIO SIDEBAR
-   ============================================================ */
-#portfolio-panel {
-  background: var(--panel);
-  border-right: 1px solid var(--border);
-  overflow-y: auto;
-  padding: 0;
-}
-
-.sidebar-section { padding: 10px 12px; }
-
-.section-title {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--text-label);
-  padding-bottom: 7px;
-  margin-bottom: 8px;
+  background: linear-gradient(160deg, #150b2e 0%, var(--panel) 100%);
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0; position: sticky; top: 0; z-index: 100; overflow: hidden;
 }
-
-.stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 10px;
+#hud::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(232,98,42,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(232,98,42,0.05) 1px,transparent 1px);
+  background-size: 28px 28px; pointer-events: none;
 }
-.stat-box {
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 6px 8px;
+.hud-header-row {
+  position: relative; display: flex; justify-content: space-between;
+  align-items: center; padding: 12px 16px 10px;
 }
-.stat-box-label { font-size: 9px; color: var(--text-dim); display:block; text-transform:uppercase; letter-spacing:0.5px; }
-.stat-box-val   { font-size: 14px; font-weight: bold; }
-
-.policy-card {
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-left: 3px solid;
-  border-radius: var(--radius);
-  padding: 7px 9px;
-  margin-bottom: 6px;
-  font-size: 12px;
-  transition: border-color 0.2s;
+.hud-title { font-family: var(--bebas); font-size: 28px; color: white; letter-spacing: 0.06em; line-height: 1; }
+.hud-subtitle { color: var(--dim); font-size: 10px; margin-top: 4px; letter-spacing: 0.03em; }
+.hud-right { display: flex; align-items: center; gap: 10px; }
+.hud-turn-block { text-align: right; }
+.hud-turn-counter { line-height: 1; margin-bottom: 3px; }
+.hud-turn-num   { font-family: var(--mono); font-size: 30px; font-weight: 700; color: var(--bright); }
+.hud-turn-denom { font-family: var(--mono); font-size: 16px; color: var(--dim); }
+.hud-turn-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.hud-icon-btn {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 8px; color: var(--dim);
+  cursor: pointer; font-size: 14px; touch-action: manipulation; font-family: var(--font);
 }
-.policy-card-line  { font-size: 10px; margin-bottom: 2px; }
-.policy-card-name  { color: var(--text); margin-bottom: 2px; }
-.policy-card-stats { display:flex; justify-content:space-between; color:var(--text-dim); font-size:10px; }
-
-.empty-state {
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 20px 10px;
-  text-align: center;
-  color: var(--text-dim);
-  font-size: 12px;
-  line-height: 1.8;
+.hud-stats-grid { display: flex; border-top: 1px solid var(--border); }
+.hud-stat-col { flex: 1; padding: 7px 0 6px; text-align: center; border-right: 1px solid var(--border); }
+.hud-stat-col:last-child { border-right: none; }
+.hud-stat-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin-bottom: 2px; }
+.hud-stat-val { font-family: var(--mono); font-size: 12px; font-weight: 500; }
+.ipo-strip { height: 2px; background: rgba(255,255,255,0.06); margin: 0 12px 6px; }
+.ipo-strip-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--orange)); transition: width 0.4s ease; }
+/* MAIN */
+#main { flex: 1; overflow-y: auto; padding: 12px 16px 8px; display: flex; flex-direction: column; gap: 10px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; margin-bottom: 2px; }
+.section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+.page-dots { display: flex; gap: 5px; align-items: center; }
+.dot-active   { width: 22px; height: 5px; background: var(--orange); border-radius: 3px; }
+.dot-inactive { width:  7px; height: 5px; background: rgba(255,255,255,0.15); border-radius: 3px; }
+/* STEPPER */
+#phase-stepper {
+  background: var(--panel); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
 }
-
-/* Log */
-.log-entry {
-  padding: 3px 0;
-  font-size: 11px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-dim);
+.stepper-circles { display: flex; align-items: center; flex-shrink: 0; }
+.stepper-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; flex-shrink: 0;
 }
-.log-entry:last-child { border-bottom: none; }
-.log-income  { color: var(--green); }
-.log-expense { color: var(--red); }
-.log-warn    { color: var(--amber); }
-.log-info    { color: var(--text-label); }
-.log-system  { color: var(--cyan); }
-
-/* ============================================================
-   PHASE PANEL
-   ============================================================ */
-#phase-panel {
-  background: var(--panel-alt);
-  overflow-y: auto;
-  padding: 14px 18px;
+.s-active   { background: var(--orange); border: 1.5px solid var(--orange); color: white; }
+.s-done     { background: rgba(31,158,86,0.25); border: 1.5px solid var(--green); color: var(--green); }
+.s-inactive { background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.15); color: var(--dim); }
+.stepper-line { width: 22px; height: 1px; background: rgba(255,255,255,0.12); }
+.stepper-info { margin-left: 4px; flex: 1; }
+.stepper-phase { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange); }
+.stepper-sub   { font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--dim); margin-top: 1px; }
+/* TAB BAR */
+#tab-bar { background: var(--panel); display: flex; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom,0px); }
+.tab-item {
+  flex: 1; padding: 10px 0 12px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; touch-action: manipulation; background: none; border: none; font-family: var(--font);
 }
-
-.phase-header {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
+.tab-icon  { font-size: 19px; }
+.tab-label { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+.tab-item.t-active .tab-label { color: var(--orange); }
+.tab-pip   { width: 20px; height: 2px; background: var(--orange); border-radius: 1px; }
+/* BUTTONS */
+.btn-sign {
+  background: var(--green); color: white; border: none; border-radius: var(--radius);
+  padding: 13px; font-size: 15px; font-weight: 700; font-family: var(--font);
+  letter-spacing: 0.02em; text-align: center; cursor: pointer; touch-action: manipulation;
+  width: 100%; box-shadow: 0 4px 16px rgba(31,158,86,0.35); min-height: 44px; display: block;
 }
-.phase-title {
-  font-size: 20px;
-  color: var(--cyan);
-  text-shadow: 0 0 12px rgba(0,204,255,0.3);
+.btn-pass {
+  background: rgba(255,255,255,0.05); color: var(--dim);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius);
+  padding: 10px; font-size: 13px; font-weight: 600; font-family: var(--font);
+  text-align: center; cursor: pointer; touch-action: manipulation; width: 100%; min-height: 44px; display: block;
 }
-.phase-subtitle {
-  font-size: 10px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.phase-body { max-width: 680px; }
-
-.info-box {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-bottom: 14px;
-  line-height: 1.8;
-}
-.info-box p { margin-bottom: 6px; }
-.info-box p:last-child { margin-bottom: 0; }
-.info-box .note {
-  font-size: 11px;
-  color: var(--text-dim);
-  border-top: 1px solid var(--border);
-  margin-top: 10px;
-  padding-top: 8px;
-}
-
-/* Resolution ledger */
-.ledger {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 14px;
-}
-.ledger-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-.ledger-row:last-child { border-bottom: none; }
-.ledger-row.total {
-  font-weight: bold;
-  font-size: 15px;
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-glow);
-  border-bottom: none;
-}
-.ledger-label { color: var(--text-label); }
-
-/* Report panel */
-.report-stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
-}
-.report-stat {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-  text-align: center;
-}
-.report-stat-label { font-size: 10px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
-.report-stat-val   { font-size: 20px; font-weight: bold; }
-
-/* ============================================================
-   BUTTONS
-   ============================================================ */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 18px;
-  border-radius: var(--radius);
-  font-family: var(--font);
-  font-size: 13px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.12s;
-  letter-spacing: 0.5px;
-  text-decoration: none;
-  user-select: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px; border-radius: var(--radius);
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  cursor: pointer; border: 1px solid transparent; transition: all 0.12s;
+  touch-action: manipulation; text-decoration: none; user-select: none; min-height: 44px;
 }
-.btn:active { transform: translateY(1px); }
-
-.btn-primary {
-  background: #0a2a6a;
-  color: var(--cyan);
-  border-color: #1a4aaa;
-  box-shadow: 0 0 10px rgba(0,150,255,0.15);
-}
-.btn-primary:hover {
-  background: #0d3280;
-  border-color: var(--cyan);
-  box-shadow: 0 0 18px rgba(0,204,255,0.3);
-}
-
-.btn-success {
-  background: #003322;
-  color: var(--green);
-  border-color: var(--green-dim);
-}
-.btn-success:hover { background: #004433; border-color: var(--green); }
-
-.btn-danger {
-  background: #330011;
-  color: var(--red);
-  border-color: var(--red-dim);
-}
-.btn-danger:hover { background: #440022; border-color: var(--red); }
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-dim);
-  border-color: var(--border);
-  font-size: 11px;
-  padding: 6px 12px;
-}
-.btn-ghost:hover { border-color: var(--text-label); color: var(--text); }
-
-.btn-sm { padding: 6px 12px; font-size: 11px; }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-#footer-bar {
-  grid-area: foot;
-  background: var(--panel);
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  gap: 14px;
-}
-
-.phase-pip-row { display:flex; gap:5px; align-items:center; }
-.phase-pip {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: all 0.2s;
-}
-.phase-pip.pip-done   { background: var(--green-dim); }
-.phase-pip.pip-active { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
-
-.footer-label {
-  flex: 1;
-  font-size: 11px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.footer-actions { display:flex; gap:8px; }
-
-/* ============================================================
-   MODAL / OVERLAY
-   ============================================================ */
-#modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(3,3,15,0.92);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  backdrop-filter: blur(2px);
-}
+.btn:active { opacity: 0.85; }
+.btn-primary { background: var(--orange); color: white; border-color: var(--orange); }
+.btn-success { background: var(--green); color: white; border-color: var(--green); box-shadow: 0 4px 16px rgba(31,158,86,0.3); }
+.btn-danger  { background: rgba(214,48,49,0.15); color: var(--red); border-color: rgba(214,48,49,0.4); }
+.btn-ghost   { background: rgba(255,255,255,0.05); color: var(--dim); border-color: var(--border); font-size: 12px; min-height: 38px; }
+.btn-ghost:hover { border-color: rgba(255,255,255,0.25); color: var(--bright); }
+.btn-sm { padding: 7px 14px; font-size: 12px; min-height: 36px; }
+.btn-full { width: 100%; justify-content: center; }
+.kbd-hint { display: inline-block; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 10px; color: var(--dim); margin-left: 6px; }
+/* GAME CARDS */
+.game-card { background: var(--card); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+.card-stripe { height: 4px; flex-shrink: 0; }
+.card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
+/* OFFER CARDS */
+.offer-category-row { display: flex; justify-content: space-between; align-items: center; }
+.offer-category { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan); }
+.offer-risk-badge { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; color: white; }
+.offer-company { font-family: var(--font); font-size: 21px; font-weight: 700; color: var(--bright); line-height: 1.2; }
+.offer-tagline { font-size: 11px; font-style: italic; color: var(--dim); margin-top: 7px; line-height: 1.5; border-left: 3px solid rgba(59,191,218,0.35); padding-left: 9px; }
+.offer-details { border-top: 1px solid rgba(255,255,255,0.08); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 10px 0; display: flex; flex-direction: column; gap: 9px; }
+.offer-detail-row { display: flex; justify-content: space-between; align-items: center; }
+.detail-label { font-size: 11px; font-weight: 500; color: var(--dim); }
+.detail-val   { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--yellow); }
+.slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.slider-label  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
+.slider-val    { font-family: var(--mono); font-size: 17px; font-weight: 500; color: var(--cyan); }
+.offer-slider { -webkit-appearance:none; appearance:none; width:100%; height:7px; border-radius:4px; outline:none; cursor:pointer; display:block; }
+.offer-slider::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:var(--orange); border:2.5px solid white; box-shadow:0 0 10px var(--orange); cursor:pointer; }
+.offer-slider::-moz-range-thumb { width:22px; height:22px; border-radius:50%; background:var(--orange); border:2.5px solid white; box-shadow:0 0 10px var(--orange); cursor:pointer; }
+.slider-minmax { display: flex; justify-content: space-between; margin-top: 3px; }
+.slider-minmax span { font-family: var(--mono); font-size: 8px; color: var(--dim); }
+.margin-box { background: rgba(0,0,0,0.25); border-radius: 10px; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; gap: 7px; }
+.margin-header { display: flex; justify-content: space-between; align-items: center; }
+.margin-label  { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }
+.margin-value  { font-family: var(--mono); font-size: 14px; font-weight: 500; transition: color 0.2s; }
+.margin-bar-row{ display: flex; align-items: center; gap: 8px; }
+.margin-bar    { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.margin-fill   { height: 100%; border-radius: 3px; transition: width 0.15s ease, background 0.15s ease; }
+.margin-pct    { font-family: var(--mono); font-size: 11px; font-weight: 500; min-width: 30px; text-align: right; transition: color 0.2s; }
+.margin-ratio  { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--dim); }
+.offer-actions { display: flex; flex-direction: column; gap: 8px; }
+.offer-list    { display: flex; flex-direction: column; gap: 14px; }
+/* EVENT CARDS */
+.event-type-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.event-line-tag { font-size: 10px; color: var(--dim); letter-spacing: 0.5px; text-transform: uppercase; }
+.event-card-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.event-title  { font-size: 18px; font-weight: 700; color: var(--bright); line-height: 1.3; }
+.event-flavor { font-size: 12px; color: var(--dim); line-height: 1.7; font-style: italic; padding: 10px 12px; background: rgba(0,0,0,0.2); border-left: 2px solid rgba(59,191,218,0.3); border-radius: 4px; }
+.event-choices { display: flex; flex-direction: column; gap: 8px; }
+.event-choice-btn { display: flex; align-items: flex-start; justify-content: space-between; padding: 12px 14px; min-height: 52px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10); border-radius: var(--radius); font-family: var(--font); font-size: 12px; color: var(--bright); cursor: pointer; text-align: left; touch-action: manipulation; transition: border-color 0.12s, background 0.12s; flex-wrap: wrap; gap: 8px; }
+.event-choice-btn:hover { border-color: var(--cyan); background: rgba(59,191,218,0.07); }
+.choice-preview { font-size: 10px; color: var(--dim); white-space: normal; flex-shrink: 0; font-family: var(--mono); }
+.resolved-summary { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+.resolved-summary-title  { font-size: 11px; font-weight: 700; color: var(--dim); margin-bottom: 4px; }
+.resolved-summary-result { color: var(--dim); font-style: italic; font-size: 12px; }
+.cards-pending-indicator { font-size: 11px; color: var(--amber); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+/* STAFF CARDS */
+.staff-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; transition: border-color 0.15s; margin-bottom: 10px; }
+.staff-card.hired { border-color: rgba(31,158,86,0.4); background: rgba(31,158,86,0.06); }
+/* POLICY CARDS */
+.policy-card { background: var(--card); border: 1px solid var(--border); border-left: 3px solid; border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; font-size: 12px; }
+.policy-card-line  { font-size: 10px; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.policy-card-name  { font-size: 14px; font-weight: 700; color: var(--bright); margin-bottom: 4px; }
+.policy-card-stats { display: flex; justify-content: space-between; color: var(--dim); font-size: 11px; font-family: var(--mono); }
+.terms-pips { display: flex; gap: 4px; margin-top: 6px; }
+.term-pip { width: 10px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); }
+.term-pip.active { background: var(--cyan); }
+/* LEDGER */
+.ledger { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+.ledger-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; }
+.ledger-row:last-child { border-bottom: none; }
+.ledger-row.total { font-weight: 700; font-size: 15px; font-family: var(--mono); margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border); border-bottom: none; }
+.ledger-label { color: var(--dim); }
+.report-stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
+.report-stat { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+.report-stat-label { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.report-stat-val   { font-size: 20px; font-weight: 700; font-family: var(--mono); }
+.info-box { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; line-height: 1.8; }
+.empty-state { border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; padding: 24px 12px; text-align: center; color: var(--dim); font-size: 12px; line-height: 1.8; }
+.log-entry { padding: 4px 0; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--dim); }
+.log-entry:last-child { border-bottom: none; }
+.log-income { color: var(--green); } .log-expense { color: var(--red); } .log-warn { color: var(--amber); } .log-info { color: var(--cyan); } .log-system { color: var(--bright); opacity: 0.7; }
+.solvency-badge { padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 12px; letter-spacing: 1.5px; }
+.sol-green  { background: rgba(31,158,86,0.15);  color: var(--green);  border: 1px solid rgba(31,158,86,0.3); }
+.sol-amber  { background: rgba(245,198,24,0.12); color: var(--yellow); border: 1px solid rgba(245,198,24,0.3); }
+.sol-orange { background: rgba(232,98,42,0.12);  color: var(--orange); border: 1px solid rgba(232,98,42,0.3); }
+.sol-red    { background: rgba(214,48,49,0.15);  color: var(--red);    border: 1px solid rgba(214,48,49,0.3); }
+/* MODAL */
+#modal-overlay { position: fixed; inset: 0; background: rgba(7,17,30,0.92); display: flex; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(4px); padding: 16px; }
 #modal-overlay.hidden { display: none; }
-
-.modal {
-  background: var(--panel);
-  border: 1px solid var(--border-glow);
-  border-radius: 6px;
-  padding: 36px 40px;
-  max-width: 480px;
-  width: 90%;
-  box-shadow: 0 0 60px rgba(40,40,200,0.4);
-  text-align: center;
-}
-.modal-icon  { font-size: 52px; margin-bottom: 14px; }
-.modal-title { margin-bottom: 12px; }
-.modal-body  { color: var(--text-dim); line-height: 1.7; margin-bottom: 28px; font-size: 13px; }
-.modal-stat-row {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-bottom: 24px;
-}
-.modal-stat-item { text-align: center; }
-.modal-stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-.modal-stat-val   { font-size: 18px; font-weight: bold; }
-.modal-actions { display:flex; gap:12px; justify-content:center; }
-
-/* ============================================================
-   OFFER CARDS (client signing UI)
-   ============================================================ */
-.offer-list { display:flex; flex-direction:column; gap:12px; }
-
-.offer-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-left: 3px solid;
-  border-radius: var(--radius);
-  padding: 14px 16px;
-}
-
-.offer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 6px;
-}
-.offer-line-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.offer-risk-badge {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.offer-name {
-  font-size: 15px;
-  color: var(--text);
-  margin-bottom: 4px;
-  font-weight: bold;
-}
-.offer-quip {
-  font-size: 11px;
-  color: var(--text-dim);
-  font-style: italic;
-  margin-bottom: 10px;
-  line-height: 1.4;
-}
-.offer-stats {
-  display: flex;
-  gap: 20px;
-  font-size: 11px;
-  color: var(--text-label);
-  margin-bottom: 12px;
-}
-.offer-stat strong { color: var(--text); }
-
-.offer-slider-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.offer-slider-label { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
-.offer-slider {
-  flex: 1;
-  appearance: none;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--border-glow);
-  outline: none;
-  cursor: pointer;
-}
-.offer-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 14px; height: 14px;
-  border-radius: 50%;
-  background: var(--cyan);
-  cursor: pointer;
-  box-shadow: 0 0 6px rgba(0,204,255,0.5);
-}
-.offer-premium-display {
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--green);
-  min-width: 70px;
-  text-align: right;
-}
-
-.offer-actions { display:flex; gap:8px; }
-
-.margin-indicator {
-  font-size: 11px;
-  margin-top: 6px;
-  padding: 5px 9px;
-  background: var(--panel-alt);
-  border-radius: 3px;
-  border-left: 2px solid currentColor;
-  line-height: 1.4;
-}
-.margin-indicator em { font-style: italic; opacity: 0.8; }
-
-/* ============================================================
-   EVENT CARDS
-   ============================================================ */
-.event-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 18px 20px;
-  margin-bottom: 14px;
-  max-width: 640px;
-}
-.event-card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.event-type-badge {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: 3px;
-  font-size: 9px;
-  font-weight: bold;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-.event-line-tag {
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-.event-title {
-  font-size: 17px;
-  font-weight: bold;
-  color: var(--text);
-  margin-bottom: 10px;
-  line-height: 1.3;
-}
-.event-flavor {
-  font-size: 12px;
-  color: var(--text-dim);
-  line-height: 1.7;
-  margin-bottom: 14px;
-  padding: 10px 12px;
-  background: var(--panel-alt);
-  border-left: 2px solid var(--border-glow);
-  border-radius: 2px;
-  font-style: italic;
-}
-.event-choices { display:flex; flex-direction:column; gap:7px; }
-.event-choice-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-family: var(--font);
-  font-size: 12px;
-  color: var(--text);
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.12s;
-  gap: 12px;
-}
-.event-choice-btn:hover {
-  border-color: var(--cyan);
-  background: var(--panel-bright);
-}
-.event-choice-btn:active { transform: translateX(2px); }
-.choice-preview {
-  font-size: 10px;
-  color: var(--text-dim);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* Card result reveal */
-.resolved-summary {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  font-size: 12px;
-  max-width: 640px;
-}
-.resolved-summary-title {
-  font-size: 11px;
-  font-weight: bold;
-  color: var(--text-label);
-  margin-bottom: 4px;
-}
-.resolved-summary-result { color: var(--text-dim); font-style: italic; }
-
-.cards-pending-indicator {
-  font-size: 11px;
-  color: var(--amber);
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* ============================================================
-   STAFF CARDS (M4)
-   ============================================================ */
-.staff-list { display:flex; flex-direction:column; gap:8px; max-width:640px; margin-bottom:20px; }
-.staff-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  transition: border-color 0.2s;
-}
-.staff-card.hired {
-  border-color: var(--green-dim);
-  background: #001a0a;
-}
-
-/* Terms pips on policy cards */
-.terms-pips { display:flex; gap:3px; margin-top:4px; }
-.term-pip { width:6px; height:6px; border-radius:1px; background:var(--green-dim); }
-.term-pip.active { background:var(--green); }
-
-/* ============================================================
-   META-PROGRESSION UNLOCK LIST (M7)
-   ============================================================ */
-.unlock-list { display:flex; flex-direction:column; gap:7px; }
-.unlock-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 12px;
-}
-.unlock-item.owned {
-  border-color: var(--green-dim);
-  background: #001a0a;
-}
-
-/* IC badge in HUD */
-.ic-badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--gold);
-  flex-shrink: 0;
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-@keyframes fadeSlideIn {
-  from { opacity:0; transform: translateY(10px); }
-  to   { opacity:1; transform: translateY(0); }
-}
-.fade-in { animation: fadeSlideIn 0.22s ease forwards; }
-
-@keyframes pulse {
-  0%,100% { opacity:1; }
-  50%      { opacity:0.55; }
-}
-.blink { animation: pulse 1.6s infinite; }
-
-/* Retro scanline overlay */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,20,0.07) 2px,
-    rgba(0,0,20,0.07) 4px
-  );
-  pointer-events: none;
-  z-index: 999;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar       { width: 5px; }
-::-webkit-scrollbar-track { background: var(--void); }
-::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
-
-/* ============================================================
-   M10 — TUTORIAL / SETTINGS / ONBOARDING
-   ============================================================ */
-#settings-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(3,3,15,0.88);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 300;
-  backdrop-filter: blur(2px);
-}
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 440px; max-height: 92dvh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.6); text-align: center; }
+.fade-in { animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.modal-icon  { font-size: 48px; margin-bottom: 12px; }
+.modal-title { font-family: var(--bebas); font-size: 28px; letter-spacing: 0.05em; margin-bottom: 10px; }
+.modal-body  { color: var(--dim); line-height: 1.7; margin-bottom: 24px; font-size: 13px; }
+.modal-stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.modal-stat-item { background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 10px; padding: 12px 8px; }
+.modal-stat-label { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.modal-stat-val   { font-family: var(--mono); font-size: 18px; font-weight: 700; }
+.modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.unlock-list { display: flex; flex-direction: column; gap: 8px; }
+.unlock-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 10px; text-align: left; }
+.unlock-item.owned { border-color: rgba(31,158,86,0.3); background: rgba(31,158,86,0.06); }
+/* SETTINGS */
+#settings-overlay { position: fixed; inset: 0; background: rgba(7,17,30,0.95); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 16px; backdrop-filter: blur(4px); }
 #settings-overlay.hidden { display: none; }
-
-.settings-modal {
-  background: var(--panel);
-  border: 1px solid var(--border-glow);
-  border-radius: 6px;
-  padding: 28px 32px;
-  max-width: 440px;
-  width: 90%;
-  box-shadow: 0 0 40px rgba(40,40,200,0.35);
-}
-.settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  gap: 16px;
-}
+.settings-modal { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px 20px; width: 100%; max-width: 440px; max-height: 92dvh; overflow-y: auto; }
+.settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .settings-row:last-child { border-bottom: none; }
-.settings-label { font-size: 13px; color: var(--text); }
-.settings-desc  { font-size: 10px; color: var(--text-dim); margin-top:2px; }
-.settings-control { flex-shrink:0; display:flex; gap:6px; }
-
-/* Toggle switch */
-.toggle {
-  width: 36px; height: 18px;
-  background: var(--border);
-  border-radius: 9px;
-  position: relative;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  transition: background 0.2s;
-}
-.toggle.on { background: var(--green-dim); border-color: var(--green); }
-.toggle::after {
-  content: '';
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  background: var(--text-dim);
-  transition: left 0.2s, background 0.2s;
-}
-.toggle.on::after { left: 20px; background: var(--green); }
-
-/* Tooltip / tutorial bubble */
-.tooltip-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 400;
-  pointer-events: none;
-}
-.tutorial-step {
-  position: absolute;
-  background: var(--panel);
-  border: 1px solid var(--cyan);
-  border-radius: 6px;
-  padding: 14px 16px;
-  max-width: 280px;
-  box-shadow: 0 0 20px rgba(0,204,255,0.25);
-  pointer-events: all;
-  animation: fadeSlideIn 0.2s ease;
-}
-.tutorial-step::before {
-  content: '';
-  position: absolute;
-  width: 8px; height: 8px;
-  background: var(--cyan);
-  border-radius: 50%;
-}
-.tutorial-title { font-size:12px; font-weight:bold; color:var(--cyan); margin-bottom:6px; }
-.tutorial-body  { font-size:11px; color:var(--text-dim); line-height:1.6; margin-bottom:10px; }
-.tutorial-nav   { display:flex; justify-content:space-between; align-items:center; }
-.tutorial-progress { font-size:10px; color:var(--text-dim); }
-
-/* ============================================================
-   M9 — DEBUG PANEL
-   ============================================================ */
-#debug-panel {
-  position: fixed;
-  bottom: 60px;
-  right: 12px;
-  background: #010110;
-  border: 1px solid var(--border-glow);
-  border-radius: 6px;
-  padding: 12px 14px;
-  width: 230px;
-  z-index: 500;
-  font-size: 11px;
-  box-shadow: 0 0 20px rgba(40,40,200,0.4);
-}
+.settings-label { font-size: 13px; font-weight: 600; color: var(--bright); margin-bottom: 2px; }
+.settings-desc  { font-size: 11px; color: var(--dim); }
+.settings-control { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+/* DEBUG */
+#debug-panel { position: fixed; top: 12px; right: 12px; background: rgba(13,30,50,0.97); border: 1px solid var(--orange); border-radius: 10px; padding: 10px 12px; width: 220px; z-index: 500; font-size: 11px; box-shadow: 0 0 20px rgba(232,98,42,0.2); }
 #debug-panel.hidden { display: none; }
-.dbg-title {
-  font-size: 10px;
-  color: var(--cyan);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-}
-.dbg-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 3px 0;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-dim);
-}
-.dbg-row:last-child { border-bottom: none; }
-.dbg-row strong { color: var(--text); }
-.dbg-btns { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
-.dbg-btn {
-  padding: 3px 7px;
-  background: var(--panel-bright);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  color: var(--text-dim);
-  font-family: var(--font);
-  font-size: 10px;
-  cursor: pointer;
-}
-.dbg-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-
-/* Difficulty indicator chip */
-.diff-chip {
-  font-size: 9px;
-  padding: 1px 5px;
-  border-radius: 2px;
-  margin-left: 6px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-}
-
-/* ============================================================
-   M8 — JUICE & POLISH
-   ============================================================ */
-/* Stat change flash */
-@keyframes statFlashGreen { 0%{background:rgba(0,232,122,0.25)} 100%{background:transparent} }
-@keyframes statFlashRed   { 0%{background:rgba(255,68,102,0.25)} 100%{background:transparent} }
-.flash-green { animation: statFlashGreen 0.6s ease forwards; }
-.flash-red   { animation: statFlashRed   0.6s ease forwards; }
-
-/* Card slide-in */
-@keyframes cardSlideIn {
-  from { opacity:0; transform: translateX(20px); }
-  to   { opacity:1; transform: translateX(0); }
-}
-.event-card { animation: cardSlideIn 0.25s ease forwards; }
-
-/* Choice button glow on hover */
-.event-choice-btn:hover {
-  box-shadow: 0 0 12px rgba(0,204,255,0.2);
-}
-
-/* Solvency danger pulse when rating is D or CCC */
-.sol-red { animation: pulse 1.5s infinite; }
-
-/* Capital warning pulse */
-@keyframes capitalWarning {
-  0%,100% { text-shadow: none; }
-  50% { text-shadow: 0 0 8px rgba(255,68,102,0.8); }
-}
-.capital-warning { animation: capitalWarning 1s infinite; }
-
-/* Phase transition */
-.phase-body { animation: fadeSlideIn 0.2s ease forwards; }
-
-/* Keyboard hint tooltip */
-.kbd-hint {
-  display: inline-block;
-  background: var(--panel-bright);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 1px 5px;
-  font-size: 10px;
-  color: var(--text-dim);
-  margin-left: 6px;
-  vertical-align: middle;
-}
-
-/* ============================================================
-   ACHIEVEMENT TOASTS (M12)
-   ============================================================ */
-#toast-container {
-  position: fixed;
-  bottom: 68px;
-  right: 14px;
-  z-index: 9000;
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 8px;
-  pointer-events: none;
-}
-.achievement-toast {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--panel);
-  border: 1px solid var(--gold);
-  border-radius: 6px;
-  padding: 9px 14px;
-  box-shadow: 0 0 18px rgba(255,204,68,0.25);
-  opacity: 0;
-  transform: translateX(30px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  min-width: 220px;
-}
-.achievement-toast.toast-visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-.toast-icon { font-size: 20px; flex-shrink: 0; }
-.toast-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 2px; }
-.toast-name  { font-size: 12px; font-weight: bold; color: var(--text); }
-
-/* ============================================================
-   MOBILE RESPONSIVE (≤ 768px)
-   ============================================================ */
-@media (max-width: 768px) {
-
-  /* Allow the page to scroll naturally */
-  html, body {
-    height: auto;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  /* Switch body from fixed grid to flex column */
-  body {
-    display: flex;
-    flex-direction: column;
-    font-size: 12px;
-  }
-
-  /* ── HUD ── */
-  #hud {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    height: auto;
-    flex-wrap: wrap;
-    padding: 6px 10px;
-    gap: 6px 10px;
-    flex-shrink: 0;
-  }
-  .hud-logo  { display: none; }   /* too wide for phone */
-  .hud-sep   { display: none; }   /* decorative separators removed */
-
-  /* Row 1 of HUD: period | progress  ···  buttons */
-  .hud-period   { order: 1; min-width: auto; }
-  .hud-progress { order: 2; min-width: auto; }
-  .hud-btn-row  { order: 3; margin-left: auto; gap: 4px; }
-
-  /* Row 2 of HUD: stat strip (full width) */
-  .hud-stats {
-    order: 4;
-    width: 100%;
-    flex-wrap: wrap;
-    overflow: visible;
-    gap: 6px;
-  }
-
-  .hud-period-val   { font-size: 14px; }
-  .stat-chip        { min-width: 58px; }
-  .stat-chip-val    { font-size: 13px; }
-  .bar-stat         { min-width: 64px; }
-  .bar-track        { width: 56px; }
-  .solvency-badge   { font-size: 11px; padding: 3px 7px; }
-
-  /* HUD buttons — compact on mobile */
-  .hud-btn-row .btn-ghost { padding: 5px 8px; font-size: 10px; }
-  .ic-badge { font-size: 11px; }
-
-  /* ── MAIN AREA ── */
-  #main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: visible;
-  }
-
-  /* Phase panel (action area) first, portfolio below */
-  #phase-panel {
-    order: 1;
-    overflow: visible;
-    padding: 10px 12px;
-    border-right: none;
-  }
-
-  #portfolio-panel {
-    order: 2;
-    overflow: visible;
-    border-right: none;
-    border-top: 2px solid var(--border-glow);
-    width: 100%;
-  }
-
-  /* Remove desktop max-widths — use full mobile width */
-  .phase-body        { max-width: 100%; }
-  .event-card        { max-width: 100%; }
-  .resolved-summary  { max-width: 100%; }
-
-  /* ── FOOTER ── */
-  #footer-bar {
-    position: sticky;
-    bottom: 0;
-    z-index: 50;
-    height: auto;
-    padding: 8px 12px;
-    flex-wrap: wrap;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-  .footer-label { width: 100%; font-size: 10px; }
-  .footer-actions { width: 100%; }
-  .footer-actions .btn { width: 100%; justify-content: center; }
-
-  /* ── TOUCH TARGETS (Apple/Android HIG: 44px min) ── */
-  .btn        { min-height: 44px; touch-action: manipulation; }
-  .btn-sm     { min-height: 38px; }
-  .btn-ghost  { min-height: 36px; }
-
-  /* Event choice buttons — tall enough to tap comfortably */
-  .event-choice-btn {
-    min-height: 52px;
-    padding: 12px 14px;
-    flex-wrap: wrap;
-    align-items: flex-start;
-  }
-  .choice-preview { white-space: normal; }
-
-  /* Offer actions — stack sign/decline vertically */
-  .offer-actions { flex-direction: column; }
-  .offer-actions .btn { width: 100%; justify-content: center; }
-
-  /* Offer stats — allow wrapping on small screens */
-  .offer-stats { flex-wrap: wrap; gap: 8px 16px; }
-
-  /* Slider thumb — bigger for touch */
-  .offer-slider::-webkit-slider-thumb { width: 20px; height: 20px; }
-
-  /* Report grid: 2 cols instead of 3 on mobile */
-  .report-stat-row { grid-template-columns: repeat(2, 1fr); }
-
-  /* Modal — nearly full-screen on mobile */
-  .modal {
-    padding: 20px 16px;
-    width: 96%;
-    max-height: 92dvh;
-    overflow-y: auto;
-  }
-
-  /* Settings modal */
-  .settings-modal {
-    max-width: 100% !important;
-    max-height: 92dvh;
-    overflow-y: auto;
-    margin: 0 8px;
-  }
-
-  /* Toast — adjust for mobile footer */
-  #toast-container { bottom: 72px; right: 8px; }
-  .achievement-toast { min-width: 180px; }
-}
-
-/* DAILY badge chip */
-.daily-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(0,204,255,0.12);
-  border: 1px solid rgba(0,204,255,0.4);
-  border-radius: 3px;
-  padding: 2px 7px;
-  font-size: 9px;
-  color: var(--cyan);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
+.dbg-title { font-size: 10px; color: var(--orange); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.dbg-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); color: var(--dim); }
+.dbg-row strong { color: var(--bright); font-family: var(--mono); }
+.dbg-btns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.dbg-btn { background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 4px; padding: 3px 7px; font-size: 10px; color: var(--dim); cursor: pointer; font-family: var(--font); }
+/* TOASTS */
+#toast-container { position: fixed; bottom: 80px; right: 12px; z-index: 9000; display: flex; flex-direction: column-reverse; gap: 8px; pointer-events: none; }
+.achievement-toast { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--yellow); border-radius: 10px; padding: 10px 14px; box-shadow: 0 0 20px rgba(245,198,24,0.2); opacity: 0; transform: translateX(30px); transition: opacity 0.3s ease, transform 0.3s ease; min-width: 220px; }
+.achievement-toast.toast-visible { opacity: 1; transform: translateX(0); }
+.toast-icon  { font-size: 20px; flex-shrink: 0; }
+.toast-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--yellow); margin-bottom: 2px; }
+.toast-name  { font-size: 12px; font-weight: 700; color: var(--bright); }
+.daily-chip { display: inline-flex; align-items: center; gap: 4px; background: rgba(232,98,42,0.15); border: 1px solid rgba(232,98,42,0.4); border-radius: 4px; padding: 2px 8px; font-size: 9px; color: var(--orange); letter-spacing: 1.5px; text-transform: uppercase; }
+.ic-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--yellow); font-family: var(--mono); }
+.margin-indicator { display: none; }
+.reins-btn { background: rgba(245,198,24,0.1); color: var(--yellow); border: 1px solid rgba(245,198,24,0.3); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; font-weight: 600; font-family: var(--font); cursor: pointer; touch-action: manipulation; width: 100%; text-align: center; min-height: 44px; }
+.hidden { display: none !important; }
 </style>
 </head>
 <body>
 
 <header id="hud"></header>
-<main id="main">
-  <aside id="portfolio-panel"></aside>
-  <section id="phase-panel"></section>
-</main>
-<footer id="footer-bar"></footer>
+<main id="main"></main>
+<div id="phase-stepper"></div>
+<nav id="tab-bar"></nav>
 <div id="modal-overlay" class="hidden"></div>
 <div id="debug-panel" class="hidden"></div>
 <div id="settings-overlay" class="hidden"></div>
@@ -2903,6 +1995,16 @@ let rng  = createRNG(game.seed);
 // Tracks slider positions between renders without polluting game state
 const _sliderMult = {};  // offerId → multiplier (default 1.0)
 
+// Active tab: 'offers' | 'staff' | 'portfolio' | 'log'
+let _activeTab = 'offers';
+
+// Compact number formatter for HUD (e.g. 10000 → ¢10k)
+function fmtK(n) {
+  const abs = Math.abs(Math.round(n));
+  if (abs >= 1000) return '¢' + (Math.round(abs / 100) / 10) + 'k';
+  return '¢' + abs;
+}
+
 function setState(patch) {
   game = { ...game, ...patch };
 
@@ -2957,6 +2059,7 @@ function loadGame() {
 
 function newGame() {
   _icEarned = false;
+  _activeTab = 'offers';
   game = initialState();
   rng  = createRNG(game.seed);
   applyStartBonuses();  // apply meta-unlock bonuses
@@ -3258,531 +2361,488 @@ function netColor(n) { return n >= 0 ? 'var(--green)' : 'var(--red)'; }
 /* ============================================================
    RENDER — HUD
    ============================================================ */
+const STEPPER_PHASES = [
+  { key:'portfolio',  label:'Assess', sub:'Manage your book of business' },
+  { key:'events',     label:'Events', sub:'Incoming claims & galactic chaos' },
+  { key:'resolution', label:'Claims', sub:'Premiums in, claims out' },
+  { key:'report',     label:'Close',  sub:'Review your performance' },
+];
+const RISK_STRIPE = { HIGH:'var(--red)', MEDIUM:'var(--amber)', LOW:'var(--green)' };
+const RISK_BG     = { HIGH:'#d63031',   MEDIUM:'#f5a623',      LOW:'#1f9e56' };
+
 function renderHUD() {
-  const { capital, reputation, heat, solvencyRating, turn, maxTurns } = game;
-  const progress = ((turn - 1) / maxTurns) * 100;
+  const { capital, reputation, heat, turn, maxTurns } = game;
+  const remaining = maxTurns - turn;
+  const ipoProgress = Math.min(100, Math.round(capital / BALANCE.winCapital * 100));
+  const phaseKey = game.phase || 'portfolio';
+  const stepperPh = STEPPER_PHASES.find(p => p.key === phaseKey) || STEPPER_PHASES[0];
+  const titleStr = stepperPh.label.toUpperCase();
 
   document.getElementById('hud').innerHTML = `
-    <div class="hud-logo" style="flex-shrink:0;line-height:0">
-      ${SVG_LOGO}
-    </div>
-
-    <div class="hud-sep"></div>
-
-    <div class="hud-period">
-      <span class="hud-period-label">Fiscal Period</span>
-      <span class="hud-period-val">${turnToDate(turn)}</span>
-    </div>
-
-    <div class="hud-progress">
-      <span class="hud-prog-label">Run (${turn}/${maxTurns})</span>
-      <div class="hud-prog-track">
-        <div class="hud-prog-fill" style="width:${progress}%"></div>
+    <div class="hud-header-row">
+      <div>
+        <div class="hud-title">${titleStr}</div>
+        <div class="hud-subtitle">${turnToDate(turn)}&nbsp;·&nbsp;${remaining} qtr${remaining !== 1 ? 's' : ''} to IPO${game.isDaily ? ' &nbsp;<span class="daily-chip">📅 Daily</span>' : ''}</div>
       </div>
-    </div>
-
-    <div class="hud-sep"></div>
-
-    <div class="hud-stats">
-
-      <div class="stat-chip" style="min-width:90px">
-        <span class="stat-chip-label">💰 Capital</span>
-        <span class="stat-chip-val" style="color:${moneyColor(capital)}">¢${fmt(capital)}</span>
-        <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
-          <div style="width:60px;height:4px;background:var(--border);border-radius:2px;overflow:hidden">
-            <div style="height:100%;width:${Math.min(100, Math.round(capital/BALANCE.winCapital*100))}%;background:${moneyColor(capital)};border-radius:2px;transition:width 0.4s"></div>
+      <div class="hud-right">
+        <div class="hud-turn-block">
+          <div class="hud-turn-counter">
+            <span class="hud-turn-num">${turn}</span><span class="hud-turn-denom">/${maxTurns}</span>
           </div>
-          <span style="font-size:9px;color:var(--text-dim)">IPO</span>
+          <div class="hud-turn-label">TURN</div>
         </div>
+        <button class="hud-icon-btn" data-action="open-settings" title="Settings">⚙</button>
       </div>
-
-      <div class="bar-stat">
-        <span class="bar-stat-label">⭐ Reputation</span>
-        <div class="bar-track bar-rep-track">
-          <div class="bar-fill" style="width:${reputation}%;background:${repColor(reputation)}"></div>
-        </div>
-        <span class="bar-stat-num" style="color:${repColor(reputation)}">${reputation}/100</span>
-      </div>
-
-      <div class="stat-chip">
-        <span class="stat-chip-label">⚠️ Exposure</span>
-        <span class="stat-chip-val" style="color:var(--amber)">¢${fmt(game.exposure)}</span>
-      </div>
-
-      <div class="bar-stat">
-        <span class="bar-stat-label">🔥 Heat</span>
-        <div class="bar-track bar-heat-track">
-          <div class="bar-fill" style="width:${heat}%;background:${heatColor(heat)}"></div>
-        </div>
-        <span class="bar-stat-num" style="color:${heatColor(heat)}">${heat}/100</span>
-      </div>
-
-      <div class="hud-sep"></div>
-      <div class="solvency-badge ${solvencyClass(solvencyRating)}">${solvencyRating}</div>
-
     </div>
-
-    <div class="hud-btn-row">
-      <div class="ic-badge">${SVG_ICONS['icon-industry-cred']} ${meta.industrycred}</div>
-      ${game.isDaily ? `<div class="daily-chip">📅 Daily</div>` : ''}
-      <button class="btn btn-ghost" data-action="show-tutorial" title="Help / Tutorial" style="padding:5px 8px;line-height:0">${SVG_ICONS['icon-help']}</button>
-      <button class="btn btn-ghost" data-action="open-settings" title="Settings" style="padding:5px 8px;line-height:0">${SVG_ICONS['icon-settings']}</button>
-      <button class="btn btn-ghost" data-action="new-game">↺ New Run</button>
+    <div class="hud-stats-grid">
+      <div class="hud-stat-col">
+        <div class="hud-stat-label">Capital</div>
+        <div class="hud-stat-val" style="color:var(--cyan)">${fmtK(capital)}</div>
+      </div>
+      <div class="hud-stat-col">
+        <div class="hud-stat-label">Rep</div>
+        <div class="hud-stat-val" style="color:var(--yellow)">${reputation}/100</div>
+      </div>
+      <div class="hud-stat-col">
+        <div class="hud-stat-label">Exposure</div>
+        <div class="hud-stat-val" style="color:var(--orange)">${fmtK(game.exposure)}</div>
+      </div>
+      <div class="hud-stat-col">
+        <div class="hud-stat-label">Heat</div>
+        <div class="hud-stat-val" style="color:var(--red)">${heat}/100</div>
+      </div>
     </div>
+    <div class="ipo-strip"><div class="ipo-strip-fill" style="width:${ipoProgress}%"></div></div>
   `;
 }
 
 /* ============================================================
-   RENDER — PORTFOLIO SIDEBAR
+   RENDER — MAIN (tab dispatcher)
    ============================================================ */
-function renderPortfolio() {
-  const { policies, log } = game;
-  const totalPremium  = calcTotalPremium(policies);
-
-  // Policies
-  let policyHtml = '';
-  if (policies.length === 0) {
-    policyHtml = `<div class="empty-state">
-      📭 No active policies<br>
-      <small>Sign clients during the Portfolio phase<br>to begin collecting premiums.</small>
-    </div>`;
-  } else {
-    policyHtml = policies.map(p => {
-      const m    = LINE_META[p.line] || {};
-      const svg  = SVG_ICONS[m.svgFile] || '';
-      const pips = Array.from({ length: p.termsTotal || p.termsRemaining },
-        (_, i) => `<div class="term-pip ${i < p.termsRemaining ? 'active' : ''}"></div>`
-      ).join('');
-      return `<div class="policy-card" style="border-left-color:${m.color}">
-        <div class="policy-card-line" style="color:${m.color};display:flex;align-items:center;gap:6px">
-          ${svg}<span>${m.label}</span>
-        </div>
-        <div class="policy-card-name">${p.name}</div>
-        <div class="policy-card-stats">
-          <span style="color:var(--green)">¢${fmt(p.premium)}/qtr</span>
-          <span>Max: ¢${fmt(p.maxPayout)}</span>
-        </div>
-        <div class="terms-pips" title="${p.termsRemaining} quarter${p.termsRemaining !== 1 ? 's' : ''} remaining">${pips}</div>
-      </div>`;
-    }).join('');
+function renderMain() {
+  const el = document.getElementById('main');
+  switch (_activeTab) {
+    case 'staff':     el.innerHTML = renderStaffContent();     break;
+    case 'portfolio': el.innerHTML = renderPortfolioContent(); break;
+    case 'log':       el.innerHTML = renderLogContent();       break;
+    default:          el.innerHTML = renderOffersContent();    break;
   }
-
-  // Log (most recent 10)
-  const logHtml = log.slice(0, 10).map(e =>
-    `<div class="log-entry log-${e.type}">${e.text}</div>`
-  ).join('') || '<div class="log-entry">— no entries yet —</div>';
-
-  document.getElementById('portfolio-panel').innerHTML = `
-    <div class="sidebar-section">
-      <div class="section-title">📁 Portfolio</div>
-      <div class="stat-grid">
-        <div class="stat-box">
-          <span class="stat-box-label">Policies</span>
-          <span class="stat-box-val">${policies.length}</span>
-        </div>
-        <div class="stat-box">
-          <span class="stat-box-label">Qtr Premium</span>
-          <span class="stat-box-val" style="color:var(--green)">¢${fmt(totalPremium)}</span>
-        </div>
-      </div>
-      ${policyHtml}
-    </div>
-
-    <div class="sidebar-section">
-      <div class="section-title">📋 Run Log</div>
-      ${logHtml}
-    </div>
-  `;
+  // After rendering, init slider track backgrounds
+  el.querySelectorAll('.offer-slider[data-slider-offer]').forEach(s => updateSliderTrack(s));
 }
 
-/* ============================================================
-   RENDER — PHASE PANEL
-   ============================================================ */
-function renderPhasePanel() {
-  const { phase, turn, maxTurns, lastIncome, lastExpenses, lastNet,
-          capital, reputation, lifetimeIncome, lifetimeExpenses } = game;
-  const meta = PHASE_META[phase];
-  const date = turnToDate(turn);
-  let body   = '';
+function updateSliderTrack(slider) {
+  const pct = ((parseInt(slider.value,10) - 70) / 60) * 100;
+  slider.style.background = `linear-gradient(to right, var(--cyan) 0%, var(--orange) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`;
+}
 
+/* Offers tab — renders the active phase content */
+function renderOffersContent() {
+  const { phase, pendingOffers, pendingCards, resolvedCards } = game;
+  const turn = game.turn, maxTurns = game.maxTurns;
+
+  /* ── PORTFOLIO PHASE ── */
   if (phase === 'portfolio') {
-    const offers = game.pendingOffers || [];
-    const hasActuarial2 = hasStaff('actuarial') || hasUnlock('actuarial-intern') || !!game.flags.freeActuarial;
+    const hasActuarial = hasStaff('actuarial') || hasUnlock('actuarial-intern') || !!game.flags.freeActuarial;
+    const offers = pendingOffers || [];
+
+    const dots = offers.map((_, i) => `<div class="${i === 0 ? 'dot-active' : 'dot-inactive'}"></div>`).join('');
+
     const offerCards = offers.length === 0
-      ? `<div class="empty-state">📭 No new clients available this quarter.</div>`
+      ? `<div class="empty-state">📭 No more offers this quarter.<br><small>Sign clients or advance to Events.</small></div>`
       : offers.map(o => {
-          const m         = LINE_META[o.line] || {};
-          const svg       = SVG_ICONS[m.svgFile] || '';
-          const mult      = _sliderMult[o.id] || 1.0;
-          const adjPrem   = Math.round(o.basePremium * mult);
-          const pColor    = mult > 1.12 ? 'var(--amber)' : mult < 0.88 ? 'var(--red)' : 'var(--green)';
-          const rColor    = RISK_COLORS[o.riskLevel] || 'var(--text)';
+          const m       = LINE_META[o.line] || {};
+          const mult    = _sliderMult[o.id] || 1.0;
+          const adjPrem = Math.round(o.basePremium * mult);
+          const minPrem = Math.round(o.basePremium * 0.70);
+          const maxPrem = Math.round(o.basePremium * 1.30);
           const sliderVal = Math.round(mult * 100);
+          const stripe  = RISK_STRIPE[o.riskLevel] || 'var(--dim)';
+          const badgeBg = RISK_BG[o.riskLevel]     || '#444';
+          const pct     = ((sliderVal - 70) / 60) * 100;
+          const trackBg = `linear-gradient(to right,var(--cyan) 0%,var(--orange) ${pct}%,rgba(255,255,255,0.1) ${pct}%)`;
           const renewBadge = o.isRenewal
-            ? `<span style="font-size:9px;padding:2px 5px;background:#001122;color:var(--cyan);border:1px solid #00ccff44;border-radius:2px;letter-spacing:1px">↻ RENEWAL</span>`
+            ? `<span style="font-size:9px;padding:2px 6px;background:rgba(59,191,218,0.12);color:var(--cyan);border:1px solid rgba(59,191,218,0.3);border-radius:3px;letter-spacing:1px">↻ RENEWAL</span>`
             : '';
-          const actuarialNote = hasActuarial2
-            ? `<span style="color:var(--text-dim)">Avg exp.: ¢${fmt(Math.round((o.claimRange[0]+o.claimRange[1])/2*o.claimChance))}/qtr</span>`
-            : '';
+          // Margin indicator
+          let marginHtml;
+          if (hasActuarial) {
+            const avgClaim = (o.claimRange[0]+o.claimRange[1])/2;
+            const expLoss  = Math.round(o.claimChance * avgClaim);
+            const margin   = adjPrem - expLoss;
+            const lr       = Math.round(expLoss / adjPrem * 100);
+            const mc       = lr < 65 ? 'var(--green)' : lr < 85 ? 'var(--orange)' : 'var(--red)';
+            marginHtml = `<div class="margin-box" id="margin-${o.id}">
+              <div class="margin-header">
+                <span class="margin-label">Expected Margin</span>
+                <span class="margin-value" style="color:${mc}">${margin>=0?'+':'-'}¢${Math.abs(margin).toLocaleString()}/qtr</span>
+              </div>
+              <div class="margin-bar-row">
+                <div class="margin-bar"><div class="margin-fill" style="width:${Math.min(lr,100)}%;background:${mc}"></div></div>
+                <span class="margin-pct" style="color:${mc}">${lr}%</span>
+                <span class="margin-ratio">loss ratio</span>
+              </div>
+            </div>`;
+          } else {
+            const lo = Math.round(adjPrem - o.claimChance * o.claimRange[1]);
+            const hi = Math.round(adjPrem - o.claimChance * o.claimRange[0]);
+            const mc = (lo>0&&hi>0)?'var(--green)':(lo<0&&hi<0)?'var(--red)':'var(--orange)';
+            const ml = (lo>0&&hi>0)?'likely profitable':(lo<0&&hi<0)?'likely a loss':'uncertain';
+            const fb = n => `${n>=0?'+':'-'}¢${Math.abs(n).toLocaleString()}`;
+            marginHtml = `<div class="margin-box" id="margin-${o.id}">
+              <div class="margin-header">
+                <span class="margin-label">Rough Margin</span>
+                <span class="margin-value" style="color:${mc}">${fb(lo)} to ${fb(hi)}/qtr</span>
+              </div>
+              <div class="margin-bar-row">
+                <div style="flex:1;font-size:10px;color:${mc};font-style:italic">${ml}</div>
+                <span style="font-size:9px;color:var(--dim)">Hire Actuarial for exact</span>
+              </div>
+            </div>`;
+          }
           return `
-          <div class="offer-card fade-in" style="border-left-color:${m.color}">
-            <div class="offer-header">
-              <div class="offer-line-tag" style="color:${m.color}">${svg} <span>${m.label}</span></div>
-              <div style="display:flex;gap:6px;align-items:center">
-                ${renewBadge}
-                <div style="text-align:right">
-                  <div style="font-size:8px;color:var(--text-dim);letter-spacing:0.5px;margin-bottom:2px;text-transform:uppercase">Risk Level</div>
-                  <span class="offer-risk-badge" style="background:${rColor}22;color:${rColor};border:1px solid ${rColor}44">${o.riskLevel}</span>
+          <div class="game-card offer-list-item">
+            <div class="card-stripe" style="background:${stripe}"></div>
+            <div class="card-body">
+              <div class="offer-category-row">
+                <span class="offer-category">${m.icon || ''} ${m.label || o.line}</span>
+                <div style="display:flex;gap:6px;align-items:center">
+                  ${renewBadge}
+                  <span class="offer-risk-badge" style="background:${badgeBg}">${o.riskLevel} RISK</span>
                 </div>
               </div>
-            </div>
-            <div class="offer-name">${o.name}</div>
-            <div class="offer-quip">${o.quip}</div>
-            <div class="offer-stats">
-              <span>📅 <strong>${o.terms}</strong> qtrs</span>
-              <span>🔒 Max: <strong>¢${fmt(o.maxPayout)}</strong></span>
-              <span>📊 <strong>${Math.round(o.claimChance*100)}%</strong>/qtr</span>
-              ${actuarialNote}
-            </div>
-            <div class="offer-slider-row">
-              <span class="offer-slider-label">Premium</span>
-              <input type="range" class="offer-slider" min="70" max="130" step="5" value="${sliderVal}" data-slider-offer="${o.id}">
-              <span class="offer-premium-display" id="prem-${o.id}" style="color:${pColor}">¢${fmt(adjPrem)}/qtr</span>
-            </div>
-            ${(() => {
-              // Margin indicator — rough range for all, exact for Actuarial holders
-              if (hasActuarial2) {
-                const avgClaim = (o.claimRange[0] + o.claimRange[1]) / 2;
-                const expLoss  = Math.round(o.claimChance * avgClaim);
-                const margin   = adjPrem - expLoss;
-                const lr       = Math.round(expLoss / adjPrem * 100);
-                const mc       = lr < 65 ? 'var(--green)' : lr < 85 ? 'var(--amber)' : 'var(--red)';
-                const ml       = lr < 65 ? 'profitable' : lr < 85 ? 'marginal' : 'likely a loss';
-                return `<div class="margin-indicator" id="margin-${o.id}" style="color:${mc}">
-                  📊 Expected margin: ${margin >= 0 ? '+' : '-'}¢${fmt(Math.abs(margin))}/qtr &nbsp;·&nbsp; ${lr}% loss ratio &nbsp;·&nbsp; <em>${ml}</em>
-                </div>`;
-              } else {
-                const lo = Math.round(adjPrem - o.claimChance * o.claimRange[1]);
-                const hi = Math.round(adjPrem - o.claimChance * o.claimRange[0]);
-                const mc = (lo > 0 && hi > 0) ? 'var(--green)' : (lo < 0 && hi < 0) ? 'var(--red)' : 'var(--amber)';
-                const ml = (lo > 0 && hi > 0) ? 'likely profitable' : (lo < 0 && hi < 0) ? 'likely a loss' : 'uncertain';
-                const fmtBound = n => `${n >= 0 ? '+' : '-'}¢${fmt(Math.abs(n))}`;
-                return `<div class="margin-indicator" id="margin-${o.id}" style="color:${mc}">
-                  📊 Rough margin: ${fmtBound(lo)} to ${fmtBound(hi)}/qtr &nbsp;·&nbsp; <em>${ml}</em>
-                  <span style="font-size:9px;opacity:0.6"> — hire Actuarial for exact figures</span>
-                </div>`;
-              }
-            })()}
-            <div class="offer-actions">
-              <button class="btn btn-success btn-sm" data-action="sign-client" data-value="${o.id}">✓ Sign Client</button>
-              <button class="btn btn-ghost btn-sm" data-action="decline-offer" data-value="${o.id}">✗ Pass</button>
+              <div>
+                <div class="offer-company">${o.name}</div>
+                <div class="offer-tagline">${o.quip}</div>
+              </div>
+              <div class="offer-details">
+                <div class="offer-detail-row"><span class="detail-label">Policy Duration</span><span class="detail-val">${o.terms} quarter${o.terms!==1?'s':''}</span></div>
+                <div class="offer-detail-row"><span class="detail-label">Maximum Coverage</span><span class="detail-val">¢${fmt(o.maxPayout)}</span></div>
+                <div class="offer-detail-row"><span class="detail-label">Est. Claim Rate</span><span class="detail-val">${Math.round(o.claimChance*100)}% / quarter</span></div>
+                ${hasActuarial ? `<div class="offer-detail-row"><span class="detail-label">Avg. Expected Loss</span><span class="detail-val" style="color:var(--red)">¢${fmt(Math.round(o.claimChance*(o.claimRange[0]+o.claimRange[1])/2))}/qtr</span></div>` : ''}
+              </div>
+              <div>
+                <div class="slider-header">
+                  <span class="slider-label">Premium</span>
+                  <span class="slider-val" id="prem-${o.id}">¢${fmt(adjPrem)}/qtr</span>
+                </div>
+                <input type="range" class="offer-slider" min="70" max="130" step="5" value="${sliderVal}"
+                  data-slider-offer="${o.id}" style="background:${trackBg}">
+                <div class="slider-minmax">
+                  <span>¢${fmt(minPrem)}</span>
+                  <span>¢${fmt(maxPrem)}</span>
+                </div>
+              </div>
+              ${marginHtml}
+              <div class="offer-actions">
+                <button class="btn-sign" data-action="sign-client" data-value="${o.id}">✓ Sign Client</button>
+                <button class="btn-pass" data-action="decline-offer" data-value="${o.id}">✕ Pass</button>
+              </div>
             </div>
           </div>`;
         }).join('');
 
-    // Staff hiring UI
-    const hiredStaff = game.staff || [];
-    const staffCards = STAFF_DEPTS.map(dept => {
-      const hired = hiredStaff.includes(dept.id);
-      const hasActuarial = hiredStaff.includes('actuarial');
-      return `
-        <div class="staff-card ${hired ? 'hired' : ''}">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <span style="font-size:18px">${dept.icon}</span>
-            <span style="font-size:13px;font-weight:bold;color:${hired ? 'var(--green)' : 'var(--text)'}">${dept.name}</span>
-            ${hired ? '<span style="font-size:10px;color:var(--green);margin-left:auto">● ACTIVE</span>' : ''}
-          </div>
-          <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">${dept.desc}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px">
-            <span>Cost: <strong style="color:var(--cyan)">¢${fmt(dept.cost)}</strong> · Upkeep: <strong style="color:var(--amber)">¢${fmt(dept.upkeep)}/qtr</strong></span>
-            ${hired
-              ? `<button class="btn btn-danger btn-sm" data-action="fire-dept" data-value="${dept.id}">🔥 Dissolve</button>`
-              : `<button class="btn btn-success btn-sm" data-action="hire-dept" data-value="${dept.id}"
-                  ${game.capital < dept.cost ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}>
-                  + Hire</button>`}
-          </div>
-        </div>`;
-    }).join('');
+    const advBtn = `<button class="btn btn-primary btn-full" data-action="advance-phase" style="margin-top:4px">
+      Proceed to Events → <span class="kbd-hint">↵</span>
+    </button>`;
 
-    const remaining = maxTurns - turn;
-    body = `
-      <div style="margin-bottom:12px;color:var(--text-dim);font-size:12px">
-        <strong style="color:var(--cyan)">${date}</strong> ·
-        ${remaining} quarter${remaining !== 1 ? 's' : ''} remaining until IPO target ·
-        ${game.policies.length} active polic${game.policies.length !== 1 ? 'ies' : 'y'}
+    return `
+      <div class="section-header">
+        <span class="section-label">Client Offers</span>
+        <div class="page-dots">${dots}</div>
       </div>
-      <div class="section-title" style="margin-bottom:10px">📨 Client Offers This Quarter</div>
       <div class="offer-list">${offerCards}</div>
-      <div class="section-title" style="margin:16px 0 10px">🏢 Staff & Departments</div>
-      <div class="staff-list">${staffCards}</div>
-
-      ${game.exposure > 0 ? `
-      <div class="section-title" style="margin:16px 0 10px">☂ Reinsurance</div>
-      <div class="staff-card ${game.reinsurancePurchased ? 'hired' : ''}">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-          ${SVG_ICONS['icon-reinsurance']}
-          <span style="font-weight:bold;color:${game.reinsurancePurchased ? 'var(--green)' : 'var(--gold)'}">
-            Catastrophe Reinsurance
-          </span>
-          ${game.reinsurancePurchased ? '<span style="font-size:10px;color:var(--green);margin-left:auto">● ACTIVE THIS QUARTER</span>' : ''}
-        </div>
-        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">
-          Caps any catastrophe loss at ¢${fmt(game.reinsuranceCap)} this quarter. One-time purchase per turn.
-          Cost scales with your risk exposure.
-        </div>
-        ${game.reinsurancePurchased
-          ? `<div style="font-size:11px;color:var(--green)">✓ Protected for this quarter.</div>`
-          : (() => {
-              const cost = Math.round(game.exposure * 0.04);
-              return `<div style="display:flex;justify-content:space-between;align-items:center">
-                <span style="font-size:11px">Cost this quarter: <strong style="color:var(--gold)">¢${fmt(cost)}</strong></span>
-                <button class="btn btn-sm" style="background:#221100;color:var(--gold);border:1px solid var(--amber-dim)"
-                  data-action="buy-reinsurance" data-value="${cost}"
-                  ${game.capital < cost ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}>
-                  ☂ Purchase
-                </button>
-              </div>`;
-            })()
-        }
-      </div>` : ''}
-    `;
+      ${advBtn}`;
   }
 
-  else if (phase === 'events') {
-    const pending  = game.pendingCards  || [];
-    const resolved = game.resolvedCards || [];
+  /* ── EVENTS PHASE ── */
+  if (phase === 'events') {
+    const pending   = pendingCards || [];
+    const resolved  = resolvedCards || [];
+    const blocked   = pending.length > 0;
+    const CTYPE     = { claim:{label:'CLAIM',bg:'#3a0a0a',color:'var(--red)'}, opportunity:{label:'OPPORTUNITY',bg:'#0d3a1e',color:'var(--green)'}, crisis:{label:'CRISIS',bg:'#3a2000',color:'var(--amber)'}, regulatory:{label:'REGULATORY',bg:'#2a0a3a',color:'var(--purple)'}, boss:{label:'⚠ BOSS',bg:'#3a2800',color:'var(--yellow)'}, flavor:{label:'DISPATCH',bg:'#0a2535',color:'var(--cyan)'} };
+    const cardHtml = pending.map(card => {
+      const ct = CTYPE[card.type] || CTYPE.flavor;
+      const lm = LINE_META[card.line] || {};
+      return `<div class="game-card">
+        <div class="card-stripe" style="background:${ct.color}"></div>
+        <div class="card-body">
+          <div class="event-card-header">
+            <span class="event-type-badge" style="background:${ct.bg};color:${ct.color}">${ct.label}</span>
+            ${lm.label ? `<span class="event-line-tag">${lm.icon} ${lm.label}</span>` : ''}
+          </div>
+          <div class="event-title">${card.title}</div>
+          <div class="event-flavor">${card.flavor}</div>
+          <div class="event-choices">
+            ${card.choices.map((ch,i) => `
+              <button class="event-choice-btn" data-action="resolve-choice" data-card-id="${card.id}" data-choice-idx="${i}">
+                <span>${i+1}. ${ch.label}</span>
+                <span class="choice-preview">${ch.preview||''}</span>
+              </button>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
 
-    // Show resolved cards' summaries first
     const resolvedHtml = resolved.map(r => `
       <div class="resolved-summary">
         <div class="resolved-summary-title">✓ ${r.title} — ${r.choice}</div>
         <div class="resolved-summary-result">${r.result}</div>
       </div>`).join('');
 
-    // Show current active card (first pending)
-    let activeCardHtml = '';
-    if (pending.length > 0) {
-      const card = pending[0];
-      const tm   = CARD_TYPE_META[card.type] || CARD_TYPE_META.flavor;
-      const lm   = LINE_META[card.line]      || {};
-      const typeIcon = SVG_ICONS[`card-type-${card.type}`] || '';
-      const choicesHtml = card.choices.map((ch, i) => `
-        <button class="event-choice-btn"
-                data-action="resolve-choice"
-                data-card-id="${card.id}"
-                data-choice-idx="${i}">
-          <span><span class="kbd-hint">${i+1}</span> ${ch.label}</span>
-          <span class="choice-preview">${ch.preview || ''}</span>
-        </button>`).join('');
+    const advBtn = blocked ? '' : `<button class="btn btn-primary btn-full" data-action="advance-phase" style="margin-top:4px">
+      Proceed to Claims → <span class="kbd-hint">↵</span>
+    </button>`;
 
-      activeCardHtml = `
-        <div class="event-card fade-in">
-          <div class="event-card-header">
-            <span class="event-type-badge" style="background:${tm.bg};color:${tm.color};border:1px solid ${tm.color}44">
-              ${typeIcon} ${tm.label}
-            </span>
-            ${lm.label ? `<span class="event-line-tag" style="color:${lm.color}">${lm.icon || ''} ${lm.label}</span>` : ''}
-          </div>
-          <div class="event-title">${card.title}</div>
-          <div class="event-flavor">${card.flavor}</div>
-          <div class="event-choices">${choicesHtml}</div>
-        </div>`;
-    } else {
-      activeCardHtml = `
-        <div class="info-box fade-in" style="color:var(--green)">
-          <p>✅ All events resolved for this quarter. The galaxy is momentarily under control.</p>
-        </div>`;
-    }
-
-    const pendingIndicator = pending.length > 0
-      ? `<div class="cards-pending-indicator">⚡ ${pending.length} event${pending.length > 1 ? 's' : ''} pending — resolve before proceeding</div>`
-      : '';
-
-    body = `${pendingIndicator}${activeCardHtml}${resolvedHtml}`;
+    return `
+      <div class="section-header">
+        <span class="section-label">Events &amp; Claims</span>
+        ${blocked ? `<span style="font-size:10px;color:var(--amber)">${pending.length} pending</span>` : ''}
+      </div>
+      ${cardHtml}
+      ${resolvedHtml}
+      ${advBtn}`;
   }
 
-  else if (phase === 'resolution') {
-    const detail    = game.resolutionDetail || [];
-    const upkeepAmt = staffUpkeep();
-    const netClaims = lastExpenses - upkeepAmt;
-
-    const policyRows = detail.map(d => {
-      if (d.isCatastrophe) {
-        return `
-          <div style="margin:6px 0 4px">${SVG_ICONS['banner-catastrophe']}</div>
-          <div class="ledger-row" style="background:#220005;border-radius:3px;padding:4px 8px;margin-bottom:6px">
-            <span class="ledger-label" style="color:var(--red)">☄ Catastrophe Loss</span>
-            <span style="color:var(--red);font-weight:bold">-¢${fmt(d.claimAmt)}</span>
-          </div>`;
-      }
-      if (d.isCancelled) {
-        return `
-          <div class="ledger-row" style="background:#221100;border-radius:3px;padding:3px 8px;opacity:0.8">
-            <span class="ledger-label" style="color:var(--amber)">🔴 ${d.name}</span>
-            <span style="color:var(--amber);font-size:10px">HEAT CANCELLATION</span>
-          </div>`;
-      }
-      const expiryNote = d.expired ? ' <span style="color:var(--amber);font-size:10px">[EXPIRED]</span>' : '';
-      const claimNote  = d.hadClaim
-        ? `<span style="color:var(--red)">💸 -¢${fmt(d.claimAmt)}</span>`
-        : `<span style="color:var(--text-dim)">— no claim</span>`;
-      return `
-        <div class="ledger-row">
-          <span class="ledger-label">${d.name}${expiryNote}</span>
-          <div style="display:flex;gap:16px;align-items:center">
-            ${d.premium > 0 ? `<span style="color:var(--green)">+¢${fmt(d.premium)}</span>` : ''}
-            ${claimNote}
-          </div>
-        </div>`;
+  /* ── RESOLUTION PHASE ── */
+  if (phase === 'resolution') {
+    const { resolutionDetail, lastIncome, lastExpenses, lastNet } = game;
+    const detail = resolutionDetail || [];
+    const upkeep = staffUpkeep();
+    const rows = detail.map(d => {
+      if (d.isCatastrophe) return `<div class="ledger-row"><span class="ledger-label">☄ Catastrophe</span><span style="color:var(--red)">−¢${fmt(d.claimAmt)}</span></div>`;
+      if (d.isCancelled)   return `<div class="ledger-row"><span class="ledger-label" style="color:var(--amber)">✗ ${d.name}</span><span style="color:var(--amber)">Cancelled</span></div>`;
+      const claimStr = d.hadClaim ? `<span style="color:var(--red)">−¢${fmt(d.claimAmt)}</span>` : `<span style="color:var(--green)">No claim</span>`;
+      return `<div class="ledger-row">
+        <span class="ledger-label">${d.name}${d.expired?' <span style="color:var(--amber);font-size:10px">[expired]</span>':''}</span>
+        <span style="color:var(--green)">+¢${fmt(d.premium)}</span>
+        ${claimStr}
+      </div>`;
     }).join('');
 
-    const noPolicies = detail.length === 0
-      ? `<div class="ledger-row"><span class="ledger-label" style="color:var(--amber)">⚠ No active policies — no premium income this quarter.</span></div>`
-      : '';
+    const lrRaw = lastIncome > 0 ? Math.round(lastExpenses / lastIncome * 100) : 0;
+    const lrColor = lrRaw < 65 ? 'var(--green)' : lrRaw < 85 ? 'var(--orange)' : 'var(--red)';
 
-    const upkeepRow = upkeepAmt > 0
-      ? `<div class="ledger-row"><span class="ledger-label">🏢 Staff Upkeep</span><span style="color:var(--red)">-¢${fmt(upkeepAmt)}</span></div>`
-      : '';
-
-    body = `
-      <div class="ledger fade-in">
-        ${noPolicies}
-        ${policyRows}
-        ${upkeepRow}
+    return `
+      <div class="section-header"><span class="section-label">Resolution</span></div>
+      <div class="ledger">
+        ${rows || '<div class="ledger-row"><span class="ledger-label">No policies active</span><span>—</span></div>'}
+        ${upkeep>0?`<div class="ledger-row"><span class="ledger-label">Staff upkeep</span><span style="color:var(--orange)">−¢${fmt(upkeep)}</span></div>`:''}
         <div class="ledger-row total">
-          <span class="ledger-label">Net This Quarter</span>
-          <span style="color:${netColor(lastNet)}">${lastNet >= 0 ? '+' : '-'}¢${fmt(Math.abs(lastNet))}</span>
+          <span class="ledger-label">Net this quarter</span>
+          <span style="color:${lastNet>=0?'var(--green)':'var(--red)'}">
+            ${lastNet>=0?'+':'-'}¢${fmt(Math.abs(lastNet))}
+          </span>
         </div>
       </div>
       <div class="info-box" style="font-size:12px">
-        <div style="display:flex;gap:24px">
-          <span>Capital: <strong style="color:${moneyColor(capital)}">¢${fmt(capital)}</strong></span>
-          <span>Rep: <strong style="color:${repColor(reputation)}">${reputation}</strong></span>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="color:var(--dim)">Loss Ratio</span>
+          <span style="color:${lrColor};font-family:var(--mono);font-weight:700">${lrRaw}%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--dim)">Solvency</span>
+          <span class="solvency-badge ${(() => {const r=game.solvencyRating;return ['AAA','AA'].includes(r)?'sol-green':['A','BBB'].includes(r)?'sol-amber':['BB','B'].includes(r)?'sol-orange':'sol-red';})()}">${game.solvencyRating}</span>
         </div>
       </div>
-    `;
+      <button class="btn btn-primary btn-full" data-action="advance-phase" style="margin-top:4px">
+        Generate Report → <span class="kbd-hint">↵</span>
+      </button>`;
   }
 
-  else if (phase === 'report') {
-    const lifetimeNet  = lifetimeIncome - lifetimeExpenses;
-    const remaining    = maxTurns - turn;
-    const lossRatio    = lastIncome > 0 ? Math.round((lastExpenses / lastIncome) * 100) : 0;
-    const lrColor      = lossRatio < 60 ? 'var(--green)' : lossRatio < 90 ? 'var(--amber)' : 'var(--red)';
-    const netArrow     = lastNet >= 0 ? '▲' : '▼';
-    const activePols   = game.policies.length;
-    const expiredThisQ = (game.resolutionDetail || []).filter(d => d.expired && !d.isCatastrophe).length;
-    const claimsThisQ  = (game.resolutionDetail || []).filter(d => d.hadClaim && !d.isCatastrophe).length;
+  /* ── REPORT PHASE ── */
+  if (phase === 'report') {
+    const { lastIncome, lastExpenses, lastNet, lifetimeIncome, lifetimeExpenses, turn: t, maxTurns: mt } = game;
+    const remaining = mt - t;
+    const lifetimeNet = lifetimeIncome - lifetimeExpenses;
+    const lrRaw  = lastIncome > 0 ? Math.round(lastExpenses/lastIncome*100) : 0;
+    const lrColor = lrRaw < 65 ? 'var(--green)' : lrRaw < 85 ? 'var(--orange)' : 'var(--red)';
+    const diff     = difficultyScale(t);
+    const diffStr  = diff<=0.85?'EASY':diff<=1.0?'NOMINAL':diff<=1.3?'HARD':'BRUTAL';
+    const diffColor= diff<=0.85?'var(--green)':diff<=1.0?'var(--cyan)':diff<=1.3?'var(--orange)':'var(--red)';
+    // ASCII bar
+    const barW=16, incBar=Math.round((lastIncome/(lastIncome+1))*barW)||0;
+    const expRatio=Math.min(1,lastExpenses/Math.max(lastIncome,1));
+    const expBar=Math.round(expRatio*barW);
+    const mkBar=(n,ch,bg)=>'['+ch.repeat(n)+bg.repeat(barW-n)+']';
 
-    // Simple ASCII bar chart for the last turn's P&L
-    const barMax = Math.max(lastIncome, lastExpenses, 1);
-    const incBar = '█'.repeat(Math.round((lastIncome  / barMax) * 20)).padEnd(20, '░');
-    const expBar = '█'.repeat(Math.round((lastExpenses/ barMax) * 20)).padEnd(20, '░');
-
-    body = `
-      <div class="report-stat-row fade-in">
+    return `
+      <div class="section-header"><span class="section-label">Q${((t-1)%4)+1} Report — ${turnToDate(t)}</span></div>
+      <div class="report-stat-row">
         <div class="report-stat">
-          <div class="report-stat-label">Capital</div>
-          <div class="report-stat-val" style="color:${moneyColor(capital)}" class="${capital < 2000 ? 'capital-warning' : ''}">¢${fmt(capital)}</div>
+          <div class="report-stat-label">Income</div>
+          <div class="report-stat-val" style="color:var(--green)">¢${fmt(lastIncome)}</div>
         </div>
         <div class="report-stat">
-          <div class="report-stat-label">Reputation</div>
-          <div class="report-stat-val" style="color:${repColor(reputation)}">${reputation}</div>
+          <div class="report-stat-label">Expenses</div>
+          <div class="report-stat-val" style="color:var(--red)">¢${fmt(lastExpenses)}</div>
         </div>
         <div class="report-stat">
-          <div class="report-stat-label">Qtr Net</div>
-          <div class="report-stat-val" style="color:${netColor(lastNet)}">${netArrow}¢${fmt(Math.abs(lastNet))}</div>
+          <div class="report-stat-label">Net</div>
+          <div class="report-stat-val" style="color:${lastNet>=0?'var(--green)':'var(--red)'}">
+            ${lastNet>=0?'+':''}¢${fmt(lastNet)}
+          </div>
         </div>
       </div>
-
-      <div class="ledger fade-in" style="font-size:12px">
-        <div class="ledger-row">
-          <span class="ledger-label">Premium Income</span>
-          <span style="color:var(--green)">+¢${fmt(lastIncome)}</span>
-        </div>
-        <div class="ledger-row">
-          <span class="ledger-label">Income bar</span>
-          <span style="font-family:monospace;font-size:10px;color:var(--green)">${incBar}</span>
-        </div>
-        <div class="ledger-row">
-          <span class="ledger-label">Claims & Expenses</span>
-          <span style="color:${lastExpenses > 0 ? 'var(--red)' : 'var(--text-dim)'}">-¢${fmt(lastExpenses)}</span>
-        </div>
-        <div class="ledger-row">
-          <span class="ledger-label">Expense bar</span>
-          <span style="font-family:monospace;font-size:10px;color:var(--red)">${expBar}</span>
-        </div>
-        <div class="ledger-row">
-          <span class="ledger-label">Loss Ratio</span>
-          <span style="color:${lrColor}">${lossRatio}%</span>
-        </div>
-        <div class="ledger-row total">
-          <span class="ledger-label">Lifetime Net</span>
-          <span style="color:${netColor(lifetimeNet)}">${lifetimeNet >= 0 ? '+' : '-'}¢${fmt(Math.abs(lifetimeNet))}</span>
-        </div>
-      </div>
-
       <div class="info-box" style="font-size:12px">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-          <div>Active policies: <strong>${activePols}</strong></div>
-          <div>Claims this qtr: <strong style="color:${claimsThisQ > 0 ? 'var(--red)' : 'var(--green)'}">${claimsThisQ}</strong></div>
-          <div>Expired: <strong style="color:${expiredThisQ > 0 ? 'var(--amber)' : 'var(--text-dim)'}">${expiredThisQ}</strong></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--dim)">Loss ratio this qtr</span>
+          <span style="color:${lrColor};font-family:var(--mono);font-weight:700">${lrRaw}%</span>
         </div>
-        <div style="margin-top:8px;color:var(--text-dim)">
-          Quarters remaining: <strong style="color:var(--amber)">${remaining}</strong>
-          · Solvency: <strong>${game.solvencyRating}</strong>
-          · Heat: <strong style="color:${heatColor(game.heat)}">${game.heat}</strong>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--dim)">Lifetime net</span>
+          <span style="color:${lifetimeNet>=0?'var(--green)':'var(--red)'};font-family:var(--mono)">
+            ${lifetimeNet>=0?'+':''}¢${fmt(lifetimeNet)}
+          </span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:var(--dim)">Quarters remaining</span>
+          <span style="color:var(--yellow);font-family:var(--mono);font-weight:700">${remaining}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:var(--dim)">Difficulty</span>
+          <span style="color:${diffColor};font-family:var(--mono);font-weight:700">${diffStr} (${diff.toFixed(2)}×)</span>
         </div>
       </div>
-    `;
+      <button class="btn btn-success btn-full" data-action="advance-phase" style="margin-top:4px">
+        Begin Next Quarter → <span class="kbd-hint">↵</span>
+      </button>`;
   }
 
-  document.getElementById('phase-panel').innerHTML = `
-    <div class="phase-header">
-      <span class="phase-title">${meta.icon} ${meta.label}</span>
-      <span class="phase-subtitle">Turn ${turn}/${maxTurns} · ${meta.sub}</span>
+  return `<div class="empty-state">—</div>`;
+}
+
+/* Staff tab */
+function renderStaffContent() {
+  const hiredStaff = game.staff || [];
+  const hasAct = hiredStaff.includes('actuarial');
+  const cards = STAFF_DEPTS.map(dept => {
+    const hired = hiredStaff.includes(dept.id);
+    const canHire = !hired && game.capital >= dept.cost && game.phase === 'portfolio';
+    return `<div class="staff-card ${hired?'hired':''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-size:20px">${dept.icon}</span>
+        <span style="font-size:14px;font-weight:700;color:${hired?'var(--green)':'var(--bright)'}">${dept.name}</span>
+        ${hired?'<span style="font-size:10px;color:var(--green);margin-left:auto;font-weight:600">● ACTIVE</span>':''}
+      </div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:10px;line-height:1.5">${dept.desc}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px">
+        <span>Cost: <strong style="color:var(--cyan);font-family:var(--mono)">¢${fmt(dept.cost)}</strong>
+          · Upkeep: <strong style="color:var(--orange);font-family:var(--mono)">¢${fmt(dept.upkeep)}/qtr</strong></span>
+        ${hired
+          ? `<button class="btn btn-danger btn-sm" data-action="fire-dept" data-value="${dept.id}">Dissolve</button>`
+          : `<button class="btn btn-success btn-sm" data-action="hire-dept" data-value="${dept.id}"
+               ${!canHire?'disabled style="opacity:0.4;cursor:not-allowed"':''}>+ Hire</button>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  const note = game.phase !== 'portfolio'
+    ? `<div style="font-size:11px;color:var(--amber);margin-bottom:12px;padding:8px 12px;background:rgba(245,166,35,0.08);border-radius:8px;border:1px solid rgba(245,166,35,0.2)">Hiring available during Portfolio phase only.</div>`
+    : '';
+
+  return `
+    <div class="section-header"><span class="section-label">Departments</span></div>
+    ${note}
+    ${cards}`;
+}
+
+/* Portfolio tab */
+function renderPortfolioContent() {
+  const { policies } = game;
+  const totalPremium = calcTotalPremium(policies);
+
+  if (policies.length === 0) {
+    return `
+      <div class="section-header"><span class="section-label">Active Policies</span></div>
+      <div class="empty-state">📭 No active policies.<br><small>Sign clients during the Portfolio phase.</small></div>`;
+  }
+
+  const cards = policies.map(p => {
+    const m = LINE_META[p.line] || {};
+    const pips = Array.from({length: p.termsTotal||p.termsRemaining},
+      (_,i) => `<div class="term-pip ${i < p.termsRemaining?'active':''}"></div>`
+    ).join('');
+    return `<div class="policy-card" style="border-left-color:${m.color||'var(--dim)'}">
+      <div class="policy-card-line" style="color:${m.color}">${m.icon||''} ${m.label||p.line}</div>
+      <div class="policy-card-name">${p.name}</div>
+      <div class="policy-card-stats">
+        <span style="color:var(--green);font-family:var(--mono)">¢${fmt(p.premium)}/qtr</span>
+        <span style="color:var(--dim)">Max ¢${fmt(p.maxPayout)}</span>
+      </div>
+      <div class="terms-pips" title="${p.termsRemaining} qtr${p.termsRemaining!==1?'s':''} left">${pips}</div>
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="section-header"><span class="section-label">Active Policies</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="info-box" style="padding:10px;text-align:center">
+        <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Policies</div>
+        <div style="font-family:var(--mono);font-size:20px;font-weight:700">${policies.length}</div>
+      </div>
+      <div class="info-box" style="padding:10px;text-align:center">
+        <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Qtr Premium</div>
+        <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--green)">¢${fmt(totalPremium)}</div>
+      </div>
     </div>
-    <div class="phase-body">${body}</div>
+    ${cards}`;
+}
+
+/* Log tab */
+function renderLogContent() {
+  const entries = (game.log || []).slice(0, 20);
+  const html = entries.length === 0
+    ? `<div class="empty-state">— no entries yet —</div>`
+    : entries.map(e => `<div class="log-entry log-${e.type}">${e.text}</div>`).join('');
+  return `
+    <div class="section-header"><span class="section-label">Run Log</span></div>
+    <div style="background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:12px;padding:12px 14px">${html}</div>`;
+}
+
+/* ============================================================
+   RENDER — PHASE STEPPER
+   ============================================================ */
+function renderPhaseStepper() {
+  const phaseIdx = PHASES.indexOf(game.phase);
+  const circles  = STEPPER_PHASES.map((p, i) => {
+    const cls = i < phaseIdx ? 's-done' : i === phaseIdx ? 's-active' : 's-inactive';
+    return `<div class="stepper-dot ${cls}">${i+1}</div>${i<3?'<div class="stepper-line"></div>':''}`;
+  }).join('');
+
+  const current = STEPPER_PHASES[phaseIdx] || STEPPER_PHASES[0];
+  const diff    = difficultyScale(game.turn);
+  const diffStr = diff<=0.85?'EASY':diff<=1.0?'NOM':diff<=1.3?'HARD':'BRUTAL';
+  const diffClr = diff<=0.85?'var(--green)':diff<=1.0?'var(--cyan)':diff<=1.3?'var(--orange)':'var(--red)';
+
+  document.getElementById('phase-stepper').innerHTML = `
+    <div class="stepper-circles">${circles}</div>
+    <div class="stepper-info">
+      <div class="stepper-phase">Phase ${phaseIdx+1} · ${current.label}</div>
+      <div class="stepper-sub">${current.sub}</div>
+    </div>
+    <span style="font-size:9px;font-weight:700;color:${diffClr};font-family:var(--mono);flex-shrink:0">${diffStr}</span>
   `;
 }
 
 /* ============================================================
-   RENDER — FOOTER
+   RENDER — TAB BAR
    ============================================================ */
-function renderFooter() {
-  const { phase, isGameOver } = game;
-  const phaseIdx = PHASES.indexOf(phase);
-  const adv      = PHASE_ADVANCE[phase];
-
-  const pips = PHASES.map((_, i) => {
-    const cls = i < phaseIdx ? 'pip-done' : i === phaseIdx ? 'pip-active' : '';
-    return `<div class="phase-pip ${cls}"></div>`;
-  }).join('');
-
-  const eventsBlocked = phase === 'events' && (game.pendingCards || []).length > 0;
-  let actionBtn;
-  if (isGameOver) {
-    actionBtn = `<button class="btn btn-primary" data-action="new-game">↺ Start New Run</button>`;
-  } else if (eventsBlocked) {
-    actionBtn = `<button class="btn btn-ghost" style="opacity:0.4;cursor:not-allowed" disabled>
-      Resolve ${game.pendingCards.length} event${game.pendingCards.length > 1 ? 's' : ''} first
-    </button>`;
-  } else {
-    actionBtn = `<button class="btn ${adv.cls}" data-action="advance-phase">${adv.label} <span class="kbd-hint">↵</span></button>`;
-  }
-
-  const diff      = difficultyScale(game.turn);
-  const diffColor = diff <= 0.85 ? 'var(--green)' : diff <= 1.0 ? 'var(--cyan)' : diff <= 1.3 ? 'var(--amber)' : 'var(--red)';
-  const diffStr   = diff <= 0.85 ? 'EASY' : diff <= 1.0 ? 'NOM' : diff <= 1.3 ? 'HARD' : 'BRUTAL';
-
-  document.getElementById('footer-bar').innerHTML = `
-    <div class="phase-pip-row">${pips}</div>
-    <span class="footer-label">
-      Phase ${phaseIdx + 1}/4 — ${PHASE_META[phase].sub}
-      <span class="diff-chip" style="background:${diffColor}22;color:${diffColor};border:1px solid ${diffColor}44">${diffStr}</span>
-    </span>
-    <div class="footer-actions">${actionBtn}</div>
-  `;
+const TABS = [
+  { id:'offers',    icon:'📋', label:'Offers'    },
+  { id:'staff',     icon:'🏢', label:'Staff'     },
+  { id:'portfolio', icon:'📁', label:'Portfolio' },
+  { id:'log',       icon:'📝', label:'Log'       },
+];
+function renderTabBar() {
+  document.getElementById('tab-bar').innerHTML = TABS.map(t => `
+    <button class="tab-item ${_activeTab===t.id?'t-active':''}" data-action="switch-tab" data-value="${t.id}">
+      <span class="tab-icon">${t.icon}</span>
+      <span class="tab-label">${t.label}</span>
+      ${_activeTab===t.id?'<div class="tab-pip"></div>':''}
+    </button>`).join('');
 }
+
 
 /* ============================================================
    RENDER — MODAL
@@ -3923,12 +2983,11 @@ function renderModal() {
    ============================================================ */
 function render() {
   renderHUD();
-  renderPortfolio();
-  renderPhasePanel();
-  renderFooter();
+  renderMain();
+  renderPhaseStepper();
+  renderTabBar();
   renderModal();
   renderDebugPanel();
-  // Don't re-render settings on every state change — only when explicitly triggered
 }
 
 /* ============================================================
@@ -3940,7 +2999,7 @@ document.addEventListener('click', e => {
   handleAction(el.dataset.action, el.dataset.value, el.dataset);
 });
 
-// Slider: update premium display + margin indicator without a full setState (perf)
+// Slider: update premium display, track gradient, and margin box without full setState
 document.addEventListener('input', e => {
   const slider = e.target;
   if (!slider.dataset.sliderOffer) return;
@@ -3952,41 +3011,51 @@ document.addEventListener('input', e => {
   if (!offer) return;
   const adj = Math.round(offer.basePremium * mult);
 
+  // Track gradient
+  updateSliderTrack(slider);
+
   // Premium label
   const label = document.getElementById(`prem-${offerId}`);
-  if (label) {
-    label.textContent = `¢${adj.toLocaleString()}/qtr`;
-    label.style.color = mult > 1.12 ? 'var(--amber)' : mult < 0.88 ? 'var(--red)' : 'var(--green)';
-  }
+  if (label) label.textContent = `¢${adj.toLocaleString()}/qtr`;
 
-  // Margin indicator — live update as slider moves
+  // Margin box live update
   const marginEl = document.getElementById(`margin-${offerId}`);
   if (!marginEl) return;
   const hasAct = hasStaff('actuarial') || hasUnlock('actuarial-intern') || !!(game.flags && game.flags.freeActuarial);
+  const avgClaim = (offer.claimRange[0] + offer.claimRange[1]) / 2;
+  const expLoss  = Math.round(offer.claimChance * avgClaim);
+
   if (hasAct) {
-    const avgClaim = (offer.claimRange[0] + offer.claimRange[1]) / 2;
-    const expLoss  = Math.round(offer.claimChance * avgClaim);
-    const margin   = adj - expLoss;
-    const lr       = Math.round(expLoss / adj * 100);
-    const mc       = lr < 65 ? 'var(--green)' : lr < 85 ? 'var(--amber)' : 'var(--red)';
-    const ml       = lr < 65 ? 'profitable' : lr < 85 ? 'marginal' : 'likely a loss';
-    marginEl.style.color = mc;
-    marginEl.innerHTML   = `📊 Expected margin: ${margin >= 0 ? '+' : '-'}¢${Math.abs(margin).toLocaleString()}/qtr &nbsp;·&nbsp; ${lr}% loss ratio &nbsp;·&nbsp; <em>${ml}</em>`;
+    const margin = adj - expLoss;
+    const lr     = Math.round(expLoss / adj * 100);
+    const mc     = lr < 65 ? 'var(--green)' : lr < 85 ? 'var(--orange)' : 'var(--red)';
+    marginEl.querySelector('.margin-value').textContent = `${margin>=0?'+':'-'}¢${Math.abs(margin).toLocaleString()}/qtr`;
+    marginEl.querySelector('.margin-value').style.color = mc;
+    const fill = marginEl.querySelector('.margin-fill');
+    if (fill) { fill.style.width = Math.min(lr,100)+'%'; fill.style.background = mc; }
+    const pct = marginEl.querySelector('.margin-pct');
+    if (pct) { pct.textContent = lr+'%'; pct.style.color = mc; }
   } else {
     const lo = Math.round(adj - offer.claimChance * offer.claimRange[1]);
     const hi = Math.round(adj - offer.claimChance * offer.claimRange[0]);
-    const mc = (lo > 0 && hi > 0) ? 'var(--green)' : (lo < 0 && hi < 0) ? 'var(--red)' : 'var(--amber)';
-    const ml = (lo > 0 && hi > 0) ? 'likely profitable' : (lo < 0 && hi < 0) ? 'likely a loss' : 'uncertain';
-    const fb = n => `${n >= 0 ? '+' : '-'}¢${Math.abs(n).toLocaleString()}`;
-    marginEl.style.color = mc;
-    marginEl.innerHTML   = `📊 Rough margin: ${fb(lo)} to ${fb(hi)}/qtr &nbsp;·&nbsp; <em>${ml}</em><span style="font-size:9px;opacity:0.6"> — hire Actuarial for exact figures</span>`;
+    const mc = (lo>0&&hi>0)?'var(--green)':(lo<0&&hi<0)?'var(--red)':'var(--orange)';
+    const fb = n => `${n>=0?'+':'-'}¢${Math.abs(n).toLocaleString()}`;
+    marginEl.querySelector('.margin-value').textContent = `${fb(lo)} to ${fb(hi)}/qtr`;
+    marginEl.querySelector('.margin-value').style.color = mc;
   }
 });
 
 function handleAction(action, value, dataset) {
   dataset = dataset || {};
   switch (action) {
+    case 'switch-tab':
+      _activeTab = value;
+      renderMain();
+      renderTabBar();
+      break;
+
     case 'advance-phase':
+      _activeTab = 'offers';
       advancePhase();
       break;
 
@@ -4159,6 +3228,7 @@ function handleAction(action, value, dataset) {
       if (!game.isGameOver && !confirm('Start the Daily Challenge? Current run will be lost.')) break;
       _settingsVisible = false; renderSettings();
       _icEarned = false;
+      _activeTab = 'offers';
       game = initialState();
       game.seed   = getDailySeed();
       game.isDaily = true;
