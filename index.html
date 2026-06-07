@@ -15,9 +15,9 @@
   --panel-bright: #10103a;
   --border:       #1a1a55;
   --border-glow:  #2828aa;
-  --text:         #b8cce8;
-  --text-dim:     #445566;
-  --text-label:   #6688aa;
+  --text:         #dce8f8;
+  --text-dim:     #7a9ab8;
+  --text-label:   #99bbcc;
   --green:        #00e87a;
   --green-dim:    #006640;
   --amber:        #ffaa00;
@@ -2953,12 +2953,15 @@ function turnToDate(turn) {
 }
 
 function drawCards() {
+  const activeLines = new Set(game.policies.map(p => p.line));
   const eligible = CARD_DECK.filter(c => {
     if (c.minTurn && game.turn < c.minTurn) return false;
     if (c.maxTurn && game.turn > c.maxTurn) return false;
     const cond = c.conditions || {};
-    if (cond.requiresLine && !game.policies.some(p => p.line === cond.requiresLine)) return false;
+    if (cond.requiresLine && !activeLines.has(cond.requiresLine)) return false;
     if (cond.minHeat !== undefined && game.heat < cond.minHeat) return false;
+    // Claim cards only fire against lines the player actually holds
+    if (c.type === 'claim' && c.line !== 'any' && !activeLines.has(c.line)) return false;
     return true;
   });
 
@@ -3404,7 +3407,10 @@ function renderPhasePanel() {
               <div class="offer-line-tag" style="color:${m.color}">${svg} <span>${m.label}</span></div>
               <div style="display:flex;gap:6px;align-items:center">
                 ${renewBadge}
-                <span class="offer-risk-badge" style="background:${rColor}22;color:${rColor};border:1px solid ${rColor}44">${o.riskLevel}</span>
+                <div style="text-align:right">
+                  <div style="font-size:8px;color:var(--text-dim);letter-spacing:0.5px;margin-bottom:2px;text-transform:uppercase">Risk Level</div>
+                  <span class="offer-risk-badge" style="background:${rColor}22;color:${rColor};border:1px solid ${rColor}44">${o.riskLevel}</span>
+                </div>
               </div>
             </div>
             <div class="offer-name">${o.name}</div>
