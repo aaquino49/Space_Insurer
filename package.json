@@ -1,0 +1,12 @@
+{
+  "name": "space-insurer",
+  "version": "0.5.0",
+  "description": "Mutual of Andromeda — interstellar insurance roguelike",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
