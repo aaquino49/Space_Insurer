@@ -1001,6 +1001,157 @@ body::after {
 .toast-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 2px; }
 .toast-name  { font-size: 12px; font-weight: bold; color: var(--text); }
 
+/* ============================================================
+   MOBILE RESPONSIVE (≤ 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* Allow the page to scroll naturally */
+  html, body {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Switch body from fixed grid to flex column */
+  body {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+  }
+
+  /* ── HUD ── */
+  #hud {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: auto;
+    flex-wrap: wrap;
+    padding: 6px 10px;
+    gap: 6px 10px;
+    flex-shrink: 0;
+  }
+  .hud-logo  { display: none; }   /* too wide for phone */
+  .hud-sep   { display: none; }   /* decorative separators removed */
+
+  /* Row 1 of HUD: period | progress  ···  buttons */
+  .hud-period   { order: 1; min-width: auto; }
+  .hud-progress { order: 2; min-width: auto; }
+  .hud-btn-row  { order: 3; margin-left: auto; gap: 4px; }
+
+  /* Row 2 of HUD: stat strip (full width) */
+  .hud-stats {
+    order: 4;
+    width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 6px;
+  }
+
+  .hud-period-val   { font-size: 14px; }
+  .stat-chip        { min-width: 58px; }
+  .stat-chip-val    { font-size: 13px; }
+  .bar-stat         { min-width: 64px; }
+  .bar-track        { width: 56px; }
+  .solvency-badge   { font-size: 11px; padding: 3px 7px; }
+
+  /* HUD buttons — compact on mobile */
+  .hud-btn-row .btn-ghost { padding: 5px 8px; font-size: 10px; }
+  .ic-badge { font-size: 11px; }
+
+  /* ── MAIN AREA ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  /* Phase panel (action area) first, portfolio below */
+  #phase-panel {
+    order: 1;
+    overflow: visible;
+    padding: 10px 12px;
+    border-right: none;
+  }
+
+  #portfolio-panel {
+    order: 2;
+    overflow: visible;
+    border-right: none;
+    border-top: 2px solid var(--border-glow);
+    width: 100%;
+  }
+
+  /* Remove desktop max-widths — use full mobile width */
+  .phase-body        { max-width: 100%; }
+  .event-card        { max-width: 100%; }
+  .resolved-summary  { max-width: 100%; }
+
+  /* ── FOOTER ── */
+  #footer-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    height: auto;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .footer-label { width: 100%; font-size: 10px; }
+  .footer-actions { width: 100%; }
+  .footer-actions .btn { width: 100%; justify-content: center; }
+
+  /* ── TOUCH TARGETS (Apple/Android HIG: 44px min) ── */
+  .btn        { min-height: 44px; touch-action: manipulation; }
+  .btn-sm     { min-height: 38px; }
+  .btn-ghost  { min-height: 36px; }
+
+  /* Event choice buttons — tall enough to tap comfortably */
+  .event-choice-btn {
+    min-height: 52px;
+    padding: 12px 14px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .choice-preview { white-space: normal; }
+
+  /* Offer actions — stack sign/decline vertically */
+  .offer-actions { flex-direction: column; }
+  .offer-actions .btn { width: 100%; justify-content: center; }
+
+  /* Offer stats — allow wrapping on small screens */
+  .offer-stats { flex-wrap: wrap; gap: 8px 16px; }
+
+  /* Slider thumb — bigger for touch */
+  .offer-slider::-webkit-slider-thumb { width: 20px; height: 20px; }
+
+  /* Report grid: 2 cols instead of 3 on mobile */
+  .report-stat-row { grid-template-columns: repeat(2, 1fr); }
+
+  /* Modal — nearly full-screen on mobile */
+  .modal {
+    padding: 20px 16px;
+    width: 96%;
+    max-height: 92dvh;
+    overflow-y: auto;
+  }
+
+  /* Settings modal */
+  .settings-modal {
+    max-width: 100% !important;
+    max-height: 92dvh;
+    overflow-y: auto;
+    margin: 0 8px;
+  }
+
+  /* Toast — adjust for mobile footer */
+  #toast-container { bottom: 72px; right: 8px; }
+  .achievement-toast { min-width: 180px; }
+}
+
 /* DAILY badge chip */
 .daily-chip {
   display: inline-flex;
