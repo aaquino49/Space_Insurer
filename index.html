@@ -179,6 +179,9 @@ body {
 .margin-fill   { height: 100%; border-radius: 3px; transition: width 0.15s ease, background 0.15s ease; }
 .margin-pct    { font-family: var(--mono); font-size: 11px; font-weight: 500; min-width: 30px; text-align: right; transition: color 0.2s; }
 .margin-ratio  { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--dim); }
+.accept-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: rgba(0,0,0,0.18); border-radius: 8px; border: 1px solid rgba(255,255,255,0.07); }
+.accept-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }
+.accept-val   { font-family: var(--mono); font-size: 14px; font-weight: 500; transition: color 0.15s; }
 .offer-actions { display: flex; flex-direction: column; gap: 8px; }
 .offer-list    { display: flex; flex-direction: column; gap: 14px; }
 /* EVENT CARDS */
@@ -591,6 +594,24 @@ function showAchievementToast(achievement) {
     el.classList.remove('toast-visible');
     setTimeout(() => el.remove(), 400);
   }, 3500);
+}
+
+function showToast(msg, type) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const color = type === 'warn' ? 'var(--red)' : type === 'info' ? 'var(--cyan)' : 'var(--yellow)';
+  const icon  = type === 'warn' ? '❌' : 'ℹ️';
+  const el = document.createElement('div');
+  el.className = 'achievement-toast';
+  el.style.borderColor = color;
+  el.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <div class="toast-body">
+      <div class="toast-name" style="font-size:11px">${msg}</div>
+    </div>`;
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('toast-visible'));
+  setTimeout(() => { el.classList.remove('toast-visible'); setTimeout(() => el.remove(), 400); }, 3500);
 }
 
 /* ============================================================
@@ -2429,6 +2450,14 @@ const STEPPER_PHASES = [
 const RISK_STRIPE = { HIGH:'var(--red)', MEDIUM:'var(--amber)', LOW:'var(--green)' };
 const RISK_BG     = { HIGH:'#d63031',   MEDIUM:'#f5a623',      LOW:'#1f9e56' };
 
+// Price sensitivity: how fast acceptance drops per 1.0 increase in premium multiplier
+// HIGH risk clients are desperate (fewer insurers); LOW risk clients have options
+const ACCEPT_SENSITIVITY = { LOW: 1.33, MEDIUM: 1.0, HIGH: 0.50 };
+function calcAcceptance(riskLevel, mult) {
+  const s = ACCEPT_SENSITIVITY[riskLevel] || 1.0;
+  return Math.max(0.05, Math.min(1.0, 0.90 + (1.0 - mult) * s));
+}
+
 function renderHUD() {
   const { capital, reputation, heat, turn, maxTurns } = game;
   const remaining = maxTurns - turn;
@@ -2491,7 +2520,7 @@ function renderMain() {
 }
 
 function updateSliderTrack(slider) {
-  const pct = ((parseInt(slider.value,10) - 70) / 60) * 100;
+  const pct = ((parseInt(slider.value,10) - 70) / 90) * 100;
   slider.style.background = `linear-gradient(to right, var(--cyan) 0%, var(--orange) ${pct}%, rgba(255,255,255,0.1) ${pct}%)`;
 }
 
@@ -2514,11 +2543,11 @@ function renderOffersContent() {
           const mult    = _sliderMult[o.id] || 1.0;
           const adjPrem = Math.round(o.basePremium * mult);
           const minPrem = Math.round(o.basePremium * 0.70);
-          const maxPrem = Math.round(o.basePremium * 1.30);
+          const maxPrem = Math.round(o.basePremium * 1.60);
           const sliderVal = Math.round(mult * 100);
           const stripe  = RISK_STRIPE[o.riskLevel] || 'var(--dim)';
           const badgeBg = RISK_BG[o.riskLevel]     || '#444';
-          const pct     = ((sliderVal - 70) / 60) * 100;
+          const pct     = ((sliderVal - 70) / 90) * 100;
           const trackBg = `linear-gradient(to right,var(--cyan) 0%,var(--orange) ${pct}%,rgba(255,255,255,0.1) ${pct}%)`;
           const renewBadge = o.isRenewal
             ? `<span style="font-size:9px;padding:2px 6px;background:rgba(59,191,218,0.12);color:var(--cyan);border:1px solid rgba(59,191,218,0.3);border-radius:3px;letter-spacing:1px">↻ RENEWAL</span>`
@@ -2585,7 +2614,7 @@ function renderOffersContent() {
                   <span class="slider-label">Premium</span>
                   <span class="slider-val" id="prem-${o.id}">¢${fmt(adjPrem)}/qtr</span>
                 </div>
-                <input type="range" class="offer-slider" min="70" max="130" step="5" value="${sliderVal}"
+                <input type="range" class="offer-slider" min="70" max="160" step="5" value="${sliderVal}"
                   data-slider-offer="${o.id}" style="background:${trackBg}">
                 <div class="slider-minmax">
                   <span>¢${fmt(minPrem)}</span>
@@ -2593,6 +2622,15 @@ function renderOffersContent() {
                 </div>
               </div>
               ${marginHtml}
+              ${(() => {
+                const ac = calcAcceptance(o.riskLevel, mult);
+                const acPct = Math.round(ac * 100);
+                const acColor = ac >= 0.80 ? 'var(--green)' : ac >= 0.50 ? 'var(--amber)' : 'var(--red)';
+                return `<div class="accept-row" id="accept-${o.id}">
+                  <span class="accept-label">Acceptance Chance</span>
+                  <span class="accept-val" style="color:${acColor}">${acPct}%</span>
+                </div>`;
+              })()}
               <div class="offer-actions">
                 <button class="btn-sign" data-action="sign-client" data-value="${o.id}">✓ Sign Client</button>
                 <button class="btn-pass" data-action="decline-offer" data-value="${o.id}">✕ Pass</button>
@@ -3102,6 +3140,16 @@ document.addEventListener('input', e => {
     marginEl.querySelector('.margin-value').textContent = `${fb(lo)} to ${fb(hi)}/qtr`;
     marginEl.querySelector('.margin-value').style.color = mc;
   }
+
+  // Acceptance chance live update
+  const acceptEl = document.getElementById(`accept-${offerId}`);
+  if (acceptEl) {
+    const ac = calcAcceptance(offer.riskLevel, mult);
+    const acPct = Math.round(ac * 100);
+    const acColor = ac >= 0.80 ? 'var(--green)' : ac >= 0.50 ? 'var(--amber)' : 'var(--red)';
+    const valEl = acceptEl.querySelector('.accept-val');
+    if (valEl) { valEl.textContent = acPct + '%'; valEl.style.color = acColor; }
+  }
 });
 
 function handleAction(action, value, dataset) {
@@ -3127,12 +3175,24 @@ function handleAction(action, value, dataset) {
       break;
 
     case 'sign-client': {
-      playSound('sign');
       const offerId = value;
       const offer   = (game.pendingOffers || []).find(o => o.id === offerId);
       if (!offer) break;
       const mult    = _sliderMult[offerId] || 1.0;
       const premium = Math.round(offer.basePremium * mult);
+
+      // Acceptance roll — client may reject if premium is too high
+      const acceptChance = calcAcceptance(offer.riskLevel, mult);
+      if (Math.random() > acceptChance) {
+        playSound('pass');
+        delete _sliderMult[offerId];
+        setState({ pendingOffers: (game.pendingOffers || []).filter(o => o.id !== offerId) });
+        addLog('warn', `❌ ${offer.name} rejected your premium of ¢${fmt(premium)}/qtr.`);
+        showToast(`${offer.name} rejected your offer — try a lower premium next time.`, 'warn');
+        break;
+      }
+
+      playSound('sign');
       const policy  = {
         id:           offerId + '_t' + game.turn,
         archetypeId:  offerId,
@@ -3147,8 +3207,8 @@ function handleAction(action, value, dataset) {
         termsTotal:   offer.terms,
         signedTurn:   game.turn,
       };
-      // Slight rep penalty for price-gouging, bonus for fair pricing
-      const repDelta = mult > 1.2 ? -4 : mult < 0.85 ? +3 : 0;
+      // Rep penalty for price-gouging (threshold raised to 140% to match new slider range), bonus for fair pricing
+      const repDelta = mult > 1.4 ? -4 : mult < 0.85 ? +3 : 0;
       delete _sliderMult[offerId];
       setState({
         policies:      [...game.policies, policy],
